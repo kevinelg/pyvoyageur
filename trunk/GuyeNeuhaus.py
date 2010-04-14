@@ -10,12 +10,18 @@ Copyright (c) 2010 HE-Arc. All rights reserved.
 import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 import sys
+import os
+from string import strip
+from optparse import OptionParser
 
 
 #================================================
 #              VARIABLES GLOBALES
 #================================================
 
+text = None
+screen = None
+font = None
 cities = []
 screen_x = 500
 screen_y = 500
@@ -35,6 +41,9 @@ class City(object):
         self.x = x
         self.y = y
         self.name = name
+        
+    def __str__(self):
+        return self.name, " : ", self.x, self.y
 
 
 #================================================
@@ -43,6 +52,23 @@ class City(object):
 
 def main():
     global text
+    usage = """usage: %prog [options] [filename]
+This script is intend to solve the Travel Salesman problem (TSP) problem.
+
+[filename] is a file that contains the coordinates of the cities.
+The format of this file is: NAME1 XPos1 YPos1
+It is an optional argument."""
+
+    parser = OptionParser(usage)
+    parser.add_option("-n","--nogui", action="store_false", dest="gui", default=True, help="Do not use a graphical representation")
+    parser.add_option("-m","--maxtime", type="int", dest="maxtime", default=0, help="Force the algorithm to stop after the given time (in seconds)")
+    (options, args) = parser.parse_args()
+    
+    # Retrieve the options
+    filename = None
+    if args<>[] and os.path.isfile(args[-1]):
+                    filename = args[-1]
+
     initPygame()
     draw(cities)
 
@@ -58,19 +84,10 @@ def main():
                 (x,y) = pygame.mouse.get_pos()
                 cities.append(City(x,y,"v" + str(len(cities))))
                 draw(cities)
-                print "draw() called"
-                #print cities
     screen.fill(0)
     
-    ga_solve(cities)
+    ga_solve(filename, options.gui, options.maxtime)
     
-    pos = []
-    [pos.append((c.x,c.y)) for c in cities]
-    pygame.draw.lines(screen,city_color,True,pos)
-    text = font.render("Un chemin, pas le meilleur!", True, font_color)
-    textRect = text.get_rect()
-    screen.blit(text, textRect)
-    pygame.display.flip()
     while True:
         event = pygame.event.wait()
         if event.type == KEYDOWN: break
@@ -98,13 +115,30 @@ def draw(cities):
     pygame.display.flip()
 
 def ga_solve(file=None, gui=True, maxtime=0):
-    """ Salesman resolution """
+    """ Resolution of the city traveller problem """
     global cities
+    
+    print "gui = ", gui
+    print "maxtime = ", maxtime
+    print "filename = ", file
+    
+    if file != None:
+        f = open(file,"r")
+        cities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
+    
     new = []
     for c in cities:
             new.insert(0,c)
     cities = new
-    pass
+    
+    pos = []
+    [pos.append((c.x,c.y)) for c in cities]
+    if gui:
+        pygame.draw.lines(screen,city_color,True,pos)
+        text = font.render("Un chemin, pas le meilleur!", True, font_color)
+        textRect = text.get_rect()
+        screen.blit(text, textRect)
+        pygame.display.flip()
 
 if __name__ == '__main__':
     main()

@@ -13,7 +13,13 @@ import sys
 import os
 from string import strip
 from optparse import OptionParser
+from MyUtils import speedMeasure
 
+try:
+	import psyco
+	psyco.full()
+except ImportError:
+	pass
 
 #================================================
 #              VARIABLES GLOBALES
@@ -114,6 +120,7 @@ def draw(cities):
     screen.blit(text, textRect)
     pygame.display.flip()
 
+@speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
     """ Resolution of the city traveller problem """
     global cities

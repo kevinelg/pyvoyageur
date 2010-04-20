@@ -59,7 +59,7 @@ class City(object):
 class Route(object):
     """Route with all cities"""
     def __init__(self, cityList):
-    	self.cityList = cityList
+    	self.cityList = cityList[:]
     def len(self):
         """Process the length of a route"""
         length = 0
@@ -150,37 +150,30 @@ def dist2City(city1, city2):
 	
 def generateRoutes(listRoutes, baseRoute, initialRoutesNumber):
     """generate the number of listRoutes required"""
-    listRoutes.append(baseRoute)
+    #listRoutes.append(baseRoute)
     cpt=1
     cityList = []
     # The city list contains already the last city
     lenCityList = len(baseRoute.cityList) - 1
     indexList = []
-    while cpt<=initialRoutesNumber and cpt<=maxPossibilities(lenCityList):
+    indexList.append(range(lenCityList))
+    indexList[0].append(0)
+    while cpt<=initialRoutesNumber-1 and cpt<=(maxPossibilities(lenCityList)-1):
         tmp = shake(lenCityList)
-        print "lenCityList", lenCityList
         while tmp in indexList:
             tmp = shake(lenCityList)
         indexList.append(tmp)
-        print "il", indexList
-        print cpt
         cpt += 1
         
+    for j in indexList:
+        cityList = []
+        for i in j:
+            cityList.append(baseRoute.cityList[i])
+        tmpRoute = Route(cityList)
+        listRoutes.append(tmpRoute)
         
-        
-        
-        
-    #     cityList[:] = []
-    #     for i in indexList:
-    #         cityList.append(baseRoute.cityList[i])
-    #     #if (Route(cityList) not in listRoutes):
-    #     
-    #     newRoute = Route(cityList)
-    #     if (not newRoute.isContained(listRoutes)):
-    #         listRoutes.append(Route(cityList))
-    #     cpt += 1
-    #     print cpt
-    # print "out"
+    initialRoutesNumber = len(listRoutes)
+    print "initialRoutesNumber ",initialRoutesNumber
 
 def shake(initialList):
     """Return a list shaken"""
@@ -200,6 +193,40 @@ def shake(initialList):
 def maxPossibilities(lenCityList):
     """return the maximum number of different listRoutes"""
     return fac(lenCityList-1)
+
+def selection(listRoutes, pe):
+    R = int(initialRoutesNumber * (pe/100.0))
+    print "R ", R
+    listRoutes.sort(key=lambda r:r.len())
+    
+    while R > 0:
+        listRoutes.pop(len(listRoutes)-1)
+        R -= 1
+        
+def crossover(listRoutes, pe):
+    R = int(initialRoutesNumber * (pe/100.0))
+    
+    while R > 0:
+        pairList = []
+        route1 = listRoutes(randint(0,len(listRoutes)-1))
+        route2 = listRoutes(randint(0,len(listRoutes)-1))
+        while route1 == route2 or (route1,route2) in pairList or (route2,route1) in pairList:
+            route1 = listRoutes(randint(0,len(listRoutes)-1))
+            route2 = listRoutes(randint(0,len(listRoutes)-1))
+        pairList.append((route1,route2))
+        R -= 1
+        
+    for p in pairList:
+        city = randint(0,p[0].len()-1)
+        iRoute1 = p[0].index(city)
+        iRoute2 = p[1].index(city)
+        genRoute = []
+        genRoute.append(city)
+        
+        canMove1 = True
+        canMove2 = True
+        while canMove1 and canMove2:
+            
 
 def initPygame():
     global screen
@@ -235,8 +262,8 @@ def ga_solve(file=None, gui=True, maxtime=0):
     new = []
     for c in cities:
 		new.insert(0,c)
-		print "x,y=",c.x,",",c.y
     
+    new.reverse()
     cities = new
     cities.append(cities[0])
     
@@ -244,8 +271,21 @@ def ga_solve(file=None, gui=True, maxtime=0):
     baseRoute = Route(cities)
     
     listRoutes=[]
-    print fac(len(baseRoute.cityList))
     generateRoutes(listRoutes, baseRoute, initialRoutesNumber)
+    
+    print "after generateRoutes :"
+    for r in listRoutes:
+        print r
+    
+    selection(listRoutes, 30)
+    
+    print "after selection :"
+    for r in listRoutes:
+        print r
+    
+    crossover(listRoutes, 30)
+    
+    print "after crossover :"
     for r in listRoutes:
         print r
     

@@ -44,6 +44,8 @@ initialRoutesNumber = 30
 pe1 = 30
 # % of the population to choose for mutation
 pe2 = 20
+# minimum distance between 2 cities for natural selection
+epsilon = 2
 
 
 #================================================
@@ -197,7 +199,21 @@ def maxPossibilities(lenCityList):
 
 def selection(listRoutes, pe, initialRoutesNumber):
     R = int(initialRoutesNumber * (pe/100.0))
+    # We sort the individual in lenght-value order
     listRoutes.sort(key=lambda r:r.len())
+    
+    # Eliminate all similar individuals if the difference < epsilon
+    i=0
+    while i<len(listRoutes)-1 and R > 0:
+        if (listRoutes[i].len() - listRoutes[i+1].len() < epsilon):
+            j = i+1
+            while (j <len(listRoutes) and listRoutes[i].len() - listRoutes[j].len() < epsilon and R > 0):
+                listRoutes.remove(listRoutes[j])
+                j += 1
+                R -= 1
+        i += 1
+    
+    # Eliminate the other individuals in the order of lowest lenght-value order
     while R > 0:
         listRoutes.pop(len(listRoutes)-1)
         R -= 1
@@ -329,7 +345,6 @@ def ga_solve(file=None, gui=True, maxtime=0):
     baseRoute = Route(cities)
     
     listRoutes=[]
-    
     
     print "\n*** GENERATE ROUTES ***"
     initialRoutesNumber = generateRoutes(listRoutes, baseRoute)

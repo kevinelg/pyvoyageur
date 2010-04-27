@@ -38,8 +38,12 @@ city_color = [10,10,200] # blue
 city_radius = 3
 font_color = [255,255,255] # white
 
-
+# Maximum number of initial routes
 initialRoutesNumber = 30
+# % of the population to eliminate and then add by crossover
+pe1 = 30
+# % of the population to choose for mutation
+pe2 = 20
 
 
 #================================================
@@ -265,10 +269,11 @@ def swapRoute(route,i,j):
     return tmpRoute
 
 def mutation(listRoutes, pe, initialRoutesNumber):
-    # Retrieve pe% of individuals
-    R = int(initialRoutesNumber * (pe/100.0))
+    # Retrieve pe% of individuals (- the elite individual)
+    R = int(initialRoutesNumber * (pe/100.0)) -1
     mutationPop = []
-    
+    # Allways add the elite individual
+    mutationPop.append(listRoutes[0])
     while R > 0:
         route1 = listRoutes[randint(0,len(listRoutes)-1)]
         while route1 in  mutationPop:
@@ -333,19 +338,19 @@ def ga_solve(file=None, gui=True, maxtime=0):
         print r
     
     print "\n*** SELECTION ***"
-    selection(listRoutes, 30, initialRoutesNumber)
+    selection(listRoutes, pe1, initialRoutesNumber)
     print "after selection :"
     for r in listRoutes:
         print r
     
     print "\n*** CROSSOVER ***"        
-    crossover(listRoutes, 30, initialRoutesNumber)
+    crossover(listRoutes, pe1, initialRoutesNumber)
     print "after crossover :"
     for r in listRoutes:
         print r
 
     print "\n*** MUTATION ***"                
-    mutation(listRoutes, 30, initialRoutesNumber)
+    mutation(listRoutes, pe2, initialRoutesNumber)
     print "after mutation :"
     for r in listRoutes:
         print r

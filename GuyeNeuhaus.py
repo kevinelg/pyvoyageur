@@ -150,7 +150,7 @@ def dist2City(city1, city2):
 	"""return the distance between 2 cities"""
 	return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
 	
-def generateRoutes(listRoutes, baseRoute, initialRoutesNumber):
+def generateRoutes(listRoutes, baseRoute):
     """generate the number of listRoutes required"""
     #listRoutes.append(baseRoute)
     cpt=1
@@ -176,8 +176,7 @@ def generateRoutes(listRoutes, baseRoute, initialRoutesNumber):
         tmpRoute = Route(cityList)
         listRoutes.append(tmpRoute)
         
-    initialRoutesNumber = len(listRoutes)
-    print "initialRoutesNumber ",initialRoutesNumber
+    return len(listRoutes)
 
 def shake(initialList):
     """Return a list shaken"""
@@ -198,17 +197,20 @@ def maxPossibilities(lenCityList):
     """return the maximum number of different listRoutes"""
     return fac(lenCityList-1)
 
-def selection(listRoutes, pe):
+def selection(listRoutes, pe, initialRoutesNumber):
+    print "initRoutesNumber = ", initialRoutesNumber
+    print "pe = ", pe
     R = int(initialRoutesNumber * (pe/100.0))
     print "R ", R
     print "listRoutes1", [str(c) for c in listRoutes]
     listRoutes.sort(key=lambda r:r.len())
-    print "listRoutes2", [str(c) for c in listRoutes]
+    print "listRoutes2", [c for c in listRoutes]
     while R > 0:
+        print "lenListRoutes = ",len(listRoutes)
         listRoutes.pop(len(listRoutes)-1)
         R -= 1
         
-def crossover(listRoutes, pe):
+def crossover(listRoutes, pe, initialRoutesNumber):
     R = int(initialRoutesNumber * (pe/100.0))
     
     # Select R number of pair city
@@ -325,19 +327,20 @@ def ga_solve(file=None, gui=True, maxtime=0):
     baseRoute = Route(cities)
     
     listRoutes=[]
-    generateRoutes(listRoutes, baseRoute, initialRoutesNumber)
+    initialRoutesNumber = generateRoutes(listRoutes, baseRoute)
+    print "init R N = ", initialRoutesNumber
     
     print "after generateRoutes :"
     for r in listRoutes:
         print r
     
-    selection(listRoutes, 30)
+    selection(listRoutes, 30, initialRoutesNumber)
     
     print "after selection :"
     for r in listRoutes:
         print r
         
-    crossover(listRoutes, 30)
+    crossover(listRoutes, 30, initialRoutesNumber)
     
     print "after crossover :"
     for r in listRoutes:

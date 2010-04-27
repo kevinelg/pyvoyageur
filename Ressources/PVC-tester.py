@@ -17,7 +17,7 @@ v0.2, Matthieu Amiguet, HE-Arc
 # Ces modules doivent être dans le PYTHONPATH; p.ex. dans le répertoire courant
 
 modules = (
-	"DupontDupond",
+	"GuyeNeuhaus",
 	# Éventuellement d'autres modules pour comparer plusieurs versions...
 )
 
@@ -30,8 +30,8 @@ tests = (
     ('data/pb010.txt',5),
     ('data/pb010.txt',10),
     ('data/pb050.txt',30),
-    ('data/pb050.txt',60),
-    ('data/pb100.txt',20),
+#    ('data/pb050.txt',60),
+#    ('data/pb100.txt',20),
     ('data/pb100.txt',90),
 )
 

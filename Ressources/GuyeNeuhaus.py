@@ -17,7 +17,9 @@ from MyUtils import speedMeasure
 import math
 from random import randint
 import time
-
+from threading import Thread
+from threading import Event
+from Queue import *
 try:
 	import psyco
 	psyco.full()
@@ -27,7 +29,7 @@ except ImportError:
 #================================================
 #              VARIABLES GLOBALES
 #================================================
-
+result = Queue(1)
 text = None
 screen = None
 font = None
@@ -124,7 +126,7 @@ It is an optional argument."""
     if args<>[] and os.path.isfile(args[-1]):
         filename = args[-1]
         collecting = False
-        
+    print "Collecting = ", collecting
     initPygame()
     draw(cities)
 
@@ -157,7 +159,7 @@ def fac(n):
 
 def dist2City(city1, city2):
 	"""return the distance between 2 cities"""
-	return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
+	return (math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2))
 
 #@speedMeasure
 def generateRoutes(listRoutes, baseRoute):
@@ -315,11 +317,13 @@ def mutation(listRoutes, pe, initialRoutesNumber):
         listRoutes.remove(route1)
         R -= 1
         
+    # TODO: check how to exit the loop if a stop is requested
     for route in mutationPop:
         routelen = route.len()
         for i in range(len(route.cityList)):
             for j in range(i+1,len(route.cityList)):
                 tmpRoute = swapRoute(route,i,j)
+                # TODO: optimise process of the route length (using gain between 2 route instead of the whole length)
                 if (tmpRoute.len() < routelen):
                     route = tmpRoute
                     routelen = route.len()
@@ -354,11 +358,80 @@ def ecartType(tab):
         et += (t-moyenne)**2
     return math.sqrt(et)
 
-#@speedMeasure
+class Resolution(Thread):
+    def __init__(self, listRoutes, initialRoutesNumber, pos, pe1, pe2, gui):
+        Thread.__init__(self)
+        self._stopevent = Event( )
+        self.listRoutes = listRoutes
+        self.initialRoutesNumber = initialRoutesNumber
+        self.pos = pos
+        self.pe1 = pe1
+        self.pe2 = pe2
+        self.gui = gui
+    def stop(self):
+        self._stopevent.set()
+    def run(self):
+        lastResults= [0,0]
+        et = sys.maxint
+        bestRoute= self.listRoutes[0]
+        while(et > 1 and not self._stopevent.isSet()):
+            #print "\n*** SELECTION ***"
+            selection(self.listRoutes, self.pe1, self.initialRoutesNumber)
+            #print "after selection :"
+            #for r in listRoutes:
+            #    print r
+
+            #print "\n*** CROSSOVER ***"        
+            crossover(self.listRoutes, self.pe1, self.initialRoutesNumber)
+            #print "after crossover :"
+            #for r in listRoutes:
+            #    print r
+
+            #print "\n*** MUTATION ***"                
+            mutation(self.listRoutes, self.pe2, self.initialRoutesNumber)
+
+            #print "after mutation :"
+            #for r in listRoutes:
+            #    print r
+
+            # sort all routes in length-value order
+            self.listRoutes.sort(key=lambda r:r.len())
+
+            # Process the standard deviation
+            bestRoute = self.listRoutes[0]
+            lastResults.pop()
+            lastResults[1:] = lastResults[0:]
+            lastResults[0] = bestRoute.len()
+            #print ">>lastResults = ", lastResults
+            et = ecartType(lastResults)
+            #print ">>Ecart type = ", et
+
+            # for r in listRoutes:
+            #     if r.len() < bestRoute.len():
+            #         bestRoutes = r
+
+            # Display the length of the route
+            #print "len : ", bestRoute.len()
+
+            self.pos = []
+            [self.pos.append((c.x,c.y)) for c in bestRoute.cityList]
+            if self.gui:
+                screen.fill(0)
+                pygame.draw.lines(screen,city_color,True,self.pos)
+                text = font.render("Length = "+str(bestRoute.len()) , True, font_color)
+                textRect = text.get_rect()
+                screen.blit(text, textRect)
+                pygame.display.flip()
+        result.put(bestRoute)
+
+@speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
     """ Resolution of the city traveller problem """
     global cities
-        
+    
+    
+    #TODO: use a thread to hold the main loop
+    
     # print "gui = ", gui
     #     print "maxtime = ", maxtime
     #     print "filename = ", file
@@ -393,56 +466,12 @@ def ga_solve(file=None, gui=True, maxtime=0):
     # for r in listRoutes:
     #     print r
         
-    et = sys.maxint
-    lastResults= [0,0]
-    while(et > 1):
-        #print "\n*** SELECTION ***"
-        selection(listRoutes, pe1, initialRoutesNumber)
-        #print "after selection :"
-        #for r in listRoutes:
-        #    print r
-        
-        #print "\n*** CROSSOVER ***"        
-        crossover(listRoutes, pe1, initialRoutesNumber)
-        #print "after crossover :"
-        #for r in listRoutes:
-        #    print r
-        
-        #print "\n*** MUTATION ***"                
-        mutation(listRoutes, pe2, initialRoutesNumber)
-        
-        #print "after mutation :"
-        #for r in listRoutes:
-        #    print r
-        
-        # sort all routes in length-value order
-        listRoutes.sort(key=lambda r:r.len())
-        
-        # Process the standard deviation
-        bestRoute = listRoutes[0]
-        lastResults.pop()
-        lastResults[1:] = lastResults[0:]
-        lastResults[0] = bestRoute.len()
-        #print ">>lastResults = ", lastResults
-        et = ecartType(lastResults)
-        #print ">>Ecart type = ", et
-        
-        # for r in listRoutes:
-        #     if r.len() < bestRoute.len():
-        #         bestRoutes = r
-        
-        # Display the length of the route
-        #print "len : ", bestRoute.len()
-        
-        pos = []
-        [pos.append((c.x,c.y)) for c in bestRoute.cityList]
-        if gui:
-            screen.fill(0)
-            pygame.draw.lines(screen,city_color,True,pos)
-            text = font.render("Length = "+str(bestRoute.len()) , True, font_color)
-            textRect = text.get_rect()
-            screen.blit(text, textRect)
-            pygame.display.flip()
+    resolution = Resolution(listRoutes, initialRoutesNumber, pos, pe1, pe2, gui)
+    resolution.start()
+    if (maxtime > 0):
+        time.sleep(maxtime)
+        resolution.stop()
+    bestRoute = result.get()
     tmp =(bestRoute.len(), [c.name for c in bestRoute.cityList[:]])
     print str(tmp)
     return tmp

@@ -16,6 +16,7 @@ from optparse import OptionParser
 from MyUtils import speedMeasure
 import math
 from random import randint
+import time
 
 try:
 	import psyco
@@ -352,32 +353,40 @@ def ga_solve(file=None, gui=True, maxtime=0):
     for r in listRoutes:
         print r
     
-    print "\n*** SELECTION ***"
-    selection(listRoutes, pe1, initialRoutesNumber)
-    print "after selection :"
-    for r in listRoutes:
-        print r
+    while(True):
+        print "\n*** SELECTION ***"
+        selection(listRoutes, pe1, initialRoutesNumber)
+        print "after selection :"
+        for r in listRoutes:
+            print r
+        
+        print "\n*** CROSSOVER ***"        
+        crossover(listRoutes, pe1, initialRoutesNumber)
+        print "after crossover :"
+        for r in listRoutes:
+            print r
     
-    print "\n*** CROSSOVER ***"        
-    crossover(listRoutes, pe1, initialRoutesNumber)
-    print "after crossover :"
-    for r in listRoutes:
-        print r
+        print "\n*** MUTATION ***"                
+        mutation(listRoutes, pe2, initialRoutesNumber)
+        print "after mutation :"
+        for r in listRoutes:
+            print r
+    
+        bestRoute = listRoutes[0]
+        for r in listRoutes:
+            if r.len() < bestRoute.len():
+                bestRoutes = r
+        
+        pos = []
+        [pos.append((c.x,c.y)) for c in cities]
+        if gui:
+            pygame.draw.lines(screen,city_color,True,pos)
+            text = font.render("Un chemin, pas le meilleur!", True, font_color)
+            textRect = text.get_rect()
+            screen.blit(text, textRect)
+            pygame.display.flip()
 
-    print "\n*** MUTATION ***"                
-    mutation(listRoutes, pe2, initialRoutesNumber)
-    print "after mutation :"
-    for r in listRoutes:
-        print r
-    
-    pos = []
-    [pos.append((c.x,c.y)) for c in cities]
-    if gui:
-        pygame.draw.lines(screen,city_color,True,pos)
-        text = font.render("Un chemin, pas le meilleur!", True, font_color)
-        textRect = text.get_rect()
-        screen.blit(text, textRect)
-        pygame.display.flip()
+        time.sleep(2)
 
 if __name__ == '__main__':
     main()

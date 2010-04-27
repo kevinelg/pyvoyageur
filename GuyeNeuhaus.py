@@ -40,13 +40,13 @@ city_radius = 3
 font_color = [255,255,255] # white
 
 # Maximum number of initial routes
-initialRoutesNumber = 30
+initialRoutesNumber = 200
 # % of the population to eliminate and then add by crossover
 pe1 = 30
 # % of the population to choose for mutation
 pe2 = 20
 # minimum distance between 2 cities for natural selection
-epsilon = 2
+epsilon = 20
 
 
 #================================================
@@ -90,7 +90,8 @@ class Route(object):
                 return True
         return False
     def __str__(self):
-        tmp = ""
+        tmp = "len : "
+        tmp += str(self.len()) + "\n"
         for c in self.cityList:
             tmp += str(c)
             tmp += " / "
@@ -268,7 +269,7 @@ def crossover(listRoutes, pe, initialRoutesNumber):
                     canMove2 = False
                     
         # Add randomly the remaining cities                
-        while (len(genRoute) < lenRoute):
+        while (len(genRoute)-1 < lenRoute):
             iCity = randint(0, len(cities)-1)
             while cities[iCity] in genRoute:
                 iCity = randint(0, len(cities)-1)
@@ -354,39 +355,41 @@ def ga_solve(file=None, gui=True, maxtime=0):
         print r
     
     while(True):
-        print "\n*** SELECTION ***"
+        #print "\n*** SELECTION ***"
         selection(listRoutes, pe1, initialRoutesNumber)
-        print "after selection :"
-        for r in listRoutes:
-            print r
+        #print "after selection :"
+        #for r in listRoutes:
+        #    print r
         
-        print "\n*** CROSSOVER ***"        
+        #print "\n*** CROSSOVER ***"        
         crossover(listRoutes, pe1, initialRoutesNumber)
-        print "after crossover :"
-        for r in listRoutes:
-            print r
+        #print "after crossover :"
+        #for r in listRoutes:
+        #    print r
     
-        print "\n*** MUTATION ***"                
+        #print "\n*** MUTATION ***"                
         mutation(listRoutes, pe2, initialRoutesNumber)
-        print "after mutation :"
-        for r in listRoutes:
-            print r
+        #print "after mutation :"
+        #for r in listRoutes:
+        #    print r
     
         bestRoute = listRoutes[0]
         for r in listRoutes:
             if r.len() < bestRoute.len():
                 bestRoutes = r
+        print "len : ", bestRoute.len()
         
         pos = []
-        [pos.append((c.x,c.y)) for c in cities]
+        [pos.append((c.x,c.y)) for c in bestRoute.cityList]
         if gui:
+            screen.fill(0)
             pygame.draw.lines(screen,city_color,True,pos)
             text = font.render("Un chemin, pas le meilleur!", True, font_color)
             textRect = text.get_rect()
             screen.blit(text, textRect)
             pygame.display.flip()
 
-        time.sleep(2)
+        #time.sleep(2)
 
 if __name__ == '__main__':
     main()

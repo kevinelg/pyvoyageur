@@ -159,9 +159,6 @@ def generateRoutes(listRoutes, baseRoute):
     lenCityList = len(baseRoute.cityList)
     indexList = []
     indexList.append(range(lenCityList))
-    
-    for i in indexList:
-        print "indexL2", i
     while cpt<=initialRoutesNumber-1 and cpt<=(maxPossibilities(lenCityList)-1):
         tmp = shake(lenCityList)
         while tmp in indexList:
@@ -211,11 +208,14 @@ def selection(listRoutes, pe, initialRoutesNumber):
         R -= 1
         
 def crossover(listRoutes, pe, initialRoutesNumber):
+    print "initRoutesNumber = ", initialRoutesNumber
+    print "pe = ", pe
     R = int(initialRoutesNumber * (pe/100.0))
+    print "R = ",R
     
+    pairList = []    
     # Select R number of pair city
     while R > 0:
-        pairList = []
         route1 = listRoutes[randint(0,len(listRoutes)-1)]
         route2 = listRoutes[randint(0,len(listRoutes)-1)]
         while route1 == route2 or (route1,route2) in pairList or (route2,route1) in pairList:
@@ -242,11 +242,13 @@ def crossover(listRoutes, pe, initialRoutesNumber):
         iRoute2 = p[1].cityList.index(city)
         print "i1 ", iRoute1
         print "i2 ",  iRoute2
-        cities = p[0].cityList[:-1]
+        cities = p[0].cityList[:]
         print "CITIES "
         print [str(c) for c in cities]
         genRoute = []
         genRoute.append(city)
+        print ">GEN ROUTE "
+        print [str(c) for c in genRoute]
         
         canMove1 = True
         canMove2 = True
@@ -264,11 +266,14 @@ def crossover(listRoutes, pe, initialRoutesNumber):
             if canMove2:
                 if p[1].cityList[iRoute2] not in genRoute:
                     # Add the new city at the end of the generate list
-                    cities.remove(p[0].cityList[iRoute2])
+                    cities.remove(p[1].cityList[iRoute2])
                     genRoute.append(p[1].cityList[iRoute2])
                 else:
                     canMove2 = False
             
+        print ">GEN ROUTE1 "
+        print [str(c) for c in genRoute]
+        
         # Add randomly the remaining cities                
         while (len(genRoute) < lenRoute):
             city = randint(0, len(cities)-1)
@@ -276,13 +281,14 @@ def crossover(listRoutes, pe, initialRoutesNumber):
                 city = randint(0, len(cities)-1)
             genRoute.append(city)
         
-        print ">GEN ROUTE "
+        print ">GEN ROUTE2 "
         print [str(c) for c in genRoute]
             
         # Add the crossover Route to the list Routes    
-        if genRoute not in listRoutes:
-            listRoutes.append(genRoute)
-        
+#        if genRoute not in listRoutes:
+        listRoutes.append(Route(genRoute))
+        for r in listRoutes:
+            print r
         
             
 
@@ -327,6 +333,9 @@ def ga_solve(file=None, gui=True, maxtime=0):
     baseRoute = Route(cities)
     
     listRoutes=[]
+    
+    
+    print "\n*** GENERATE ROUTES ***"
     initialRoutesNumber = generateRoutes(listRoutes, baseRoute)
     print "init R N = ", initialRoutesNumber
     
@@ -334,12 +343,14 @@ def ga_solve(file=None, gui=True, maxtime=0):
     for r in listRoutes:
         print r
     
+    print "\n*** SELECTION ***"
     selection(listRoutes, 30, initialRoutesNumber)
     
     print "after selection :"
     for r in listRoutes:
         print r
-        
+    
+    print "\n*** CROSSOVER ***"        
     crossover(listRoutes, 30, initialRoutesNumber)
     
     print "after crossover :"

@@ -156,7 +156,7 @@ def generateRoutes(listRoutes, baseRoute, initialRoutesNumber):
     cpt=1
     cityList = []
     # The city list contains already the last city
-    lenCityList = len(baseRoute.cityList) - 1
+    lenCityList = len(baseRoute.cityList)
     indexList = []
     indexList.append(range(lenCityList))
     
@@ -201,8 +201,9 @@ def maxPossibilities(lenCityList):
 def selection(listRoutes, pe):
     R = int(initialRoutesNumber * (pe/100.0))
     print "R ", R
+    print "listRoutes1", [str(c) for c in listRoutes]
     listRoutes.sort(key=lambda r:r.len())
-    print "listRoutes", [str(c) for c in listRoutes]
+    print "listRoutes2", [str(c) for c in listRoutes]
     while R > 0:
         listRoutes.pop(len(listRoutes)-1)
         R -= 1
@@ -320,9 +321,6 @@ def ga_solve(file=None, gui=True, maxtime=0):
     
     new.reverse()
     cities = new
-    
-    # On ne tient pas compte de la première ville car ceci est géré dans la classe Route
-    #cities.append(cities[0])
     
     baseRoute = Route(cities)
     

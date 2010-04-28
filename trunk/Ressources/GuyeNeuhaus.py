@@ -65,6 +65,21 @@ class City(object):
         
     def __str__(self):
         return self.name# + " : " + str(self.x) +","+ str(self.y)
+    
+    def nearest(self, cities, checkReferenceCities):
+        cityNearest = cities[0]
+        i=1
+        while cityNearest == self or cityNearest in checkReferenceCities:
+            cityNearest = cities[i]
+            i+=1
+        smallDistance = dist2City(self,cityNearest)
+        
+        for c in cities:
+            if dist2City(self, c) < smallDistance and c <> self and c not in checkReferenceCities:
+                cityNearest = c
+                smallDistance = dist2City(self,cityNearest)
+
+        return cityNearest
 
 class Route(object):
     """Route with all cities"""
@@ -448,6 +463,17 @@ class Resolution(Thread):
                 pygame.display.flip()
         result.put(bestRoute)
 
+''' generate a route looking "each nearest" city but without hard check !
+    just for begin with a first route "not too bad" '''
+def notTooBadSorting(cities):
+    newCities = []
+    newCities.append(cities[0])
+    for i in range(len(cities)):
+        if i != 0:
+            city = newCities[i-1].nearest(cities,newCities)
+            newCities.append(city)
+    return newCities
+
 @speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
     """ Resolution of the city traveller problem """
@@ -466,7 +492,12 @@ def ga_solve(file=None, gui=True, maxtime=0):
     new.reverse()
     cities = new
     
+    badRoute = Route(cities)
+    print "badRoute len :", str(badRoute.len())
+    
+    cities = notTooBadSorting(cities)
     baseRoute = Route(cities)
+    print "baseRoute len :", str(baseRoute.len())
         
     listRoutes=[]
         

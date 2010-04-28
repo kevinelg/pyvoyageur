@@ -159,9 +159,9 @@ def fac(n):
 
 def dist2City(city1, city2):
 	"""return the distance between 2 cities"""
-	return (math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2))
+	return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
 
-#@speedMeasure
+@speedMeasure
 def generateRoutes(listRoutes, baseRoute):
     """generate the number of listRoutes required"""
     # TODO: Optimize the initialRoute
@@ -300,6 +300,18 @@ def swapRoute(route,i,j):
     # tmpRoute.cityList[i:j] = route.cityList[i:j][::-1]
     return tmpRoute
 
+def swapCities(route,i,j):
+    # Method 1
+    tmp = route.cityList[i]
+    tmpRoute = Route(route.cityList)
+    tmpRoute.cityList[i] = tmpRoute.cityList[j]
+    tmpRoute.cityList[j] = tmp
+        
+    # Method 2: OTHER SOLUTION (a bit slower)        
+    # tmpRoute = Route(route.cityList)
+    # tmpRoute.cityList[i:j] = route.cityList[i:j][::-1]
+    return tmpRoute
+
 #@speedMeasure
 def mutation(listRoutes, pe, initialRoutesNumber):
     # TODO: optimise the mutation
@@ -322,13 +334,25 @@ def mutation(listRoutes, pe, initialRoutesNumber):
         routelen = route.len()
         for i in range(len(route.cityList)):
             for j in range(i+1,len(route.cityList)):
-                tmpRoute = swapRoute(route,i,j)
-                # TODO: optimise process of the route length (using gain between 2 route instead of the whole length)
-                if (tmpRoute.len() < routelen):
-                    route = tmpRoute
-                    routelen = route.len()
+                # Check if an inversion is better or not
+                #if gainSwapCities(route,i,j) > 0:
+                #    route = swapCities(route,i,(j)%len(route.cityList))
+                if gainSwapRoute(route,i,j) > 0:
+                    route = swapRoute(route,i,(j+1)%len(route.cityList))
+
             listRoutes.append(route)
 
+def gainSwapRoute(route, i, j):
+    lenRoute = len(route.cityList)
+    return dist2City(route.cityList[(i-1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[j]) - (dist2City(route.cityList[(i-1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[i]))
+
+def gainSwapCities(route, i, j):
+    lenRoute = len(route.cityList)
+    tmp1 = dist2City(route.cityList[(i-1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(i+1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(j-1)%lenRoute], route.cityList[j])
+    tmp2 = dist2City(route.cityList[(i-1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(i+1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(j-1)%lenRoute], route.cityList[i])
+    return tmp1 - tmp2
+
+    
 def initPygame():
     global screen
     global font
@@ -427,11 +451,7 @@ class Resolution(Thread):
 @speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
     """ Resolution of the city traveller problem """
-    global cities
-    
-    
-    #TODO: use a thread to hold the main loop
-    
+    global cities    
     # print "gui = ", gui
     #     print "maxtime = ", maxtime
     #     print "filename = ", file
@@ -445,7 +465,7 @@ def ga_solve(file=None, gui=True, maxtime=0):
 		new.insert(0,c)
     new.reverse()
     cities = new
-        
+    
     baseRoute = Route(cities)
         
     listRoutes=[]

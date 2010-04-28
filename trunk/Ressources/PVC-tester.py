@@ -1,30 +1,30 @@
 # coding: latin-1
 
-''' Module permettant de tester systématiquement une série de solveurs 
-pour le problème du voyageur de commerce.
+''' Module permettant de tester systÃ©matiquement une sÃ©rie de solveurs 
+pour le problÃ¨me du voyageur de commerce.
 
-Permet de lancer automatiquement une série de solveurs sur une série de problèmes
-et génère une grille de résultats au format CSV.
+Permet de lancer automatiquement une sÃ©rie de solveurs sur une sÃ©rie de problÃ¨mes
+et gÃ©nÃ¨re une grille de rÃ©sultats au format CSV.
 
 v0.2, Matthieu Amiguet, HE-Arc
 '''
 
 # PARAMETRES
 # =========
-# modifier cette partie pour l'adapter à vos besoins
+# modifier cette partie pour l'adapter Ã  vos besoins
 
-# Le nom des modules à tester
-# Ces modules doivent être dans le PYTHONPATH; p.ex. dans le répertoire courant
+# Le nom des modules Ã  tester
+# Ces modules doivent Ãªtre dans le PYTHONPATH; p.ex. dans le rÃ©pertoire courant
 
 modules = (
 	"GuyeNeuhaus",
-	# Éventuellement d'autres modules pour comparer plusieurs versions...
+	# Ã‰ventuellement d'autres modules pour comparer plusieurs versions...
 )
 
-# Liste des tests à effectuer 
-# sous forme de couples (<datafile>, <maxtime>) où
-# <datafile> est le fichier contenant les données du problème et
-# <maxtime> le temps (en secondes) imparti pour la résolution
+# Liste des tests Ã  effectuer 
+# sous forme de couples (<datafile>, <maxtime>) oÃ¹
+# <datafile> est le fichier contenant les donnÃ©es du problÃ¨me et
+# <maxtime> le temps (en secondes) imparti pour la rÃ©solution
 tests = (
     ('data/pb005.txt',1),
     ('data/pb010.txt',1),
@@ -35,16 +35,16 @@ tests = (
     ('data/pb100.txt',90),
 )
 
-# On tolère un dépassement de 5% du temps imparti:
+# On tolÃ¨re un dÃ©passement de 5% du temps imparti:
 tolerance = 0.05
 
-# Fichier dans lequel écrire les résultats
+# Fichier dans lequel Ã©crire les rÃ©sultats
 import sys
 outfile = sys.stdout
 # ou :
 #outfile = open('results.csv', 'w')
 
-# affichage à la console d'informations d'avancement?
+# affichage Ã  la console d'informations d'avancement?
 verbose = False
 
 # est-ce qu'on veut un affichage graphique?
@@ -52,7 +52,7 @@ gui = False
 
 # PROGRAMME
 # =========
-# Cette partie n'a théoriquement pas à être modifiée
+# Cette partie n'a thÃ©oriquement pas Ã  Ãªtre modifiÃ©e
 
 import os
 from time import time
@@ -64,7 +64,7 @@ def dist((x1,y1),(x2,y2)):
 def validate(filename, length, path, duration, maxtime):
     '''Validation de la solution
     
-    retourne une chaîne vide si tout est OK ou un message d'erreur sinon
+    retourne une chaÃ®ne vide si tout est OK ou un message d'erreur sinon
     '''
     error = ""
     
@@ -99,9 +99,9 @@ def validate(filename, length, path, duration, maxtime):
 
 
 if __name__ == '__main__':
-    # Récupération des différentes implémentations
-    # On met les différentes fonctions ga_solve() dans un dictionnaire indexé par le nom du module correpsondant
-    # On en profite pour écrire la ligne d'en-tête du fichier de sortie
+    # RÃ©cupÃ©ration des diffÃ©rentes implÃ©mentations
+    # On met les diffÃ©rentes fonctions ga_solve() dans un dictionnaire indexÃ© par le nom du module correpsondant
+    # On en profite pour Ã©crire la ligne d'en-tÃªte du fichier de sortie
 
     solvers = {}
 
@@ -115,16 +115,16 @@ if __name__ == '__main__':
     outfile.write('\n')
 
     # Cette partie effectue les tests proprement dits
-    # et rapporte les résultats dans outfile
+    # et rapporte les rÃ©sultats dans outfile
 
     for (filename, maxtime) in tests:
         if verbose: 
             print "--> %s, %d" % (filename, maxtime)
         # normalisation du nom de fichier (pour l'aspect multi-plateforme)
         filename = os.path.normcase(os.path.normpath(filename))
-        # Écriture de l'en-tête de ligne
+        # Ã‰criture de l'en-tÃªte de ligne
         outfile.write("%s (%ds);" % (filename, maxtime))
-        # Appel des solveurs proprement dits, vérification et écriture des résultats
+        # Appel des solveurs proprement dits, vÃ©rification et Ã©criture des rÃ©sultats
         for m in modules:
             if verbose: 
                 print "## %s" % m

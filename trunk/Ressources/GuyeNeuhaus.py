@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
+''' 
 GuyeNeuhaus.py
 
 Created by Raphael Guye and Jonathan Neuhaus on 2010-04-14.
 Copyright (c) 2010 HE-Arc. All rights reserved.
-"""
+''' 
 
 import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
@@ -29,86 +29,96 @@ except ImportError:
 #================================================
 #              VARIABLES GLOBALES
 #================================================
-result = Queue(1)
+
+# -------- GUI -------- #
 text = None
 screen = None
 font = None
-cities = []
 screen_x = 500
 screen_y = 500
-stopRunning = False
+city_color = [255,0,0]      # blue graph between listCities
+city_radius = 3             # circle radius when user click a city
+font_color = [255,255,255]  # white font for text
 
-city_color = [255,0,0] # blue
-city_radius = 3
-font_color = [255,255,255] # white
+# ------ ga tools ----- #
+result = Queue(1)           # finish result - best routes
+listCities = []             # each cities click bye user
+stopRunning = False         # True when maxime is done
 
-# Maximum number of initial routes
-initialRoutesNumber = 200
-# % of the population to eliminate and then add by crossover
-pe1 = 50
-# % of the population to choose for mutation
-pe2 = 15
-# minimum distance between 2 cities for natural selection
-epsilon = 5
+# ---- ga constants --- #
+initialRoutesNumber = 200   # maximum number of initial routes
+pe1 = 50                    # % of the population to eliminate and then add by crossover
+pe2 = 15                    # % of the population to choose for mutation
+epsilonDistCities = 5       # minimum distance between 2 listCities for natural selection
 
 
 #================================================
 #              Classes
 #================================================
 
+''' Representation of a city''' 
 class City(object):
-    """Representation of a city"""
     __slots__ = ['x','y','name']
     def __init__(self, x, y, name):
         self.x = x
         self.y = y
         self.name = name
-        
+
     def __str__(self):
-        return self.name# + " : " + str(self.x) +","+ str(self.y)
-    
-    def nearest(self, cities, checkReferenceCities):
-        cityNearest = cities[0]
+      # return self.name + " : " + str(self.x) +","+ str(self.y)
+        return self.name
+
+    ''' In  :   listCities as the list contains ALL of the cities
+    listCitiesCheck as the list contains all the cities already treated
+    Out :   The nearest city of self that it isn't contained in listCitiesCheck.'''
+    def nearest(self, listCities, listCitiesCheck):
+        cityNearest = listCities[0]
         i=1
-        while cityNearest == self or cityNearest in checkReferenceCities:
-            cityNearest = cities[i]
+        while cityNearest == self or cityNearest in listCitiesCheck:
+            cityNearest = listCities[i]
             i+=1
         smallDistance = dist2City(self,cityNearest)
-        
-        for c in cities:
-            if dist2City(self, c) < smallDistance and c <> self and c not in checkReferenceCities:
+
+        for c in listCities:
+            if dist2City(self, c) < smallDistance and c <> self and c not in listCitiesCheck:
                 cityNearest = c
                 smallDistance = dist2City(self,cityNearest)
 
         return cityNearest
 
+''' Route with each cities '''
 class Route(object):
-    """Route with all cities"""
     __slots__ = ['cityList']
     def __init__(self, cityList):
     	self.cityList = cityList[:]
+        
     def len(self):
-        """Process the length of a route"""
+        ''' Process the length of a route''' 
         length = 0
         for i in range(len(self.cityList)-1):
     		length += dist2City(self.cityList[i], self.cityList[i+1])
+                
     	# Add the distance between the first and last element of the cityList
     	length += dist2City(self.cityList[0], self.cityList[-1])
         return length
+        
     def isEgal(self, route):
-        """Check if the 2 listRoutes are equal"""
+        ''' Check if the 2 listRoutes are equal''' 
         if (len(self.cityList) <> route.len()):
             return False
+        
         for i in range(len(self.cityList)):
             if (self.cityList[i]<>route[i]):
                 return False
         return True
+
+    ''' Check if the self route is contained in the listRoutes ''' 
     def isContained(self, listRoutes):
-        """Check if the 2 listRoutes are equal"""
         for r in listRoutes:
             if r.isEgal(self):
                 return True
         return False
+        
     def __str__(self):
         tmp = "len : "
         tmp += str(self.len()) + "\n"
@@ -116,7 +126,6 @@ class Route(object):
             tmp += str(c)
             tmp += " / "
         return tmp
-    		
 
 #================================================
 #              Main
@@ -124,12 +133,12 @@ class Route(object):
 
 def main():
     global text
-    usage = """usage: %prog [options] [filename]
+    usage =''' usage: %prog [options] [filename]
 This script is intend to solve the Travel Salesman problem (TSP) problem.
 
-[filename] is a file that contains the coordinates of the cities.
+[filename] is a file that contains the coordinates of the listCities.
 The format of this file is: NAME1 XPos1 YPos1
-It is an optional argument."""
+It is an optional argument.''' 
 
     parser = OptionParser(usage)
     parser.add_option("-n","--nogui", action="store_false", dest="gui", default=True, help="Do not use a graphical representation")
@@ -144,7 +153,7 @@ It is an optional argument."""
         collecting = False
     print "Collecting = ", collecting
     initPygame()
-    draw(cities)
+    draw(listCities)
 
     while collecting:
         for event in pygame.event.get():
@@ -154,8 +163,8 @@ It is an optional argument."""
                 collecting = False
             elif event.type == MOUSEBUTTONDOWN:
                 (x,y) = pygame.mouse.get_pos()
-                cities.append(City(x,y,"v" + str(len(cities))))
-                draw(cities)
+                listCities.append(City(x,y,"v" + str(len(listCities))))
+                draw(listCities)
     screen.fill(0)
     ga_solve(filename, options.gui, options.maxtime)
         
@@ -166,25 +175,29 @@ It is an optional argument."""
 #================================================
 #              Methodes
 #================================================
+
+''' Return the orial of a number''' 
 def fac(n):
-    """Return the orial of a number"""
     p=1
     for i in range(1,n+1):
         p*=i
     return p
 
+''' return the distance between 2 listCities''' 
 def dist2City(city1, city2):
-	"""return the distance between 2 cities"""
 	return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
 
+
+''' generate the number of listRoutes required''' 
 @speedMeasure
 def generateRoutes(listRoutes, baseRoute):
-    """generate the number of listRoutes required"""
     # TODO: Optimize the initialRoute
     cpt=1
     cityList = []
     # The city list contains already the last city
     lenCityList = len(baseRoute.cityList)
+    
+    # Generate a random indexList
     indexList = []
     indexList.append(range(lenCityList))
     while cpt <= (initialRoutesNumber - 1) and cpt <= (maxPossibilities(lenCityList) - 1):
@@ -194,30 +207,30 @@ def generateRoutes(listRoutes, baseRoute):
         indexList.append(tmp)
         cpt += 1
         
+    # generate the baseRoute list with the generated indexList
     for j in indexList:
         cityList = []
         for i in j:
             cityList.append(baseRoute.cityList[i])
-        tmpRoute = Route(cityList)
-        listRoutes.append(tmpRoute)
+        listRoutes.append(Route(cityList))
         
     return len(listRoutes)
 
+''' Return a list shaken ''' 
 def shake(initialList):
-    """Return a list shaken"""
     indexList = []
     # The first element is allways the starting city
     indexList.append(0)
         
-    for i1 in range(initialList-1):
+    for cmpt in range(initialList-1):
         i = randint(1,initialList-1)
         while (i in indexList):
             i = randint(1,initialList-1)
         indexList.append(i)
     return indexList
-
+        
+''' return the maximum number of different listRoutes'''
 def maxPossibilities(lenCityList):
-    """return the maximum number of different listRoutes"""
     return fac(lenCityList-1)
 
 #@speedMeasure
@@ -226,13 +239,13 @@ def selection(listRoutes, pe, initialRoutesNumber):
     # We sort the individual in lenght-value order
     listRoutes.sort(key=lambda r:r.len())
         
-    # Eliminate all similar individuals if the difference < epsilon
+    # Eliminate all similar individuals if the difference < epsilonDistCities
     # TODO: optimize this part (create a temp array to hold the route to remove)
     i=0
     while i<len(listRoutes)-1 and R > 0:
-        if (listRoutes[i].len() - listRoutes[i+1].len() < epsilon):
+        if (listRoutes[i].len() - listRoutes[i+1].len() < epsilonDistCities):
             j = i+1
-            while (j <len(listRoutes) and listRoutes[i].len() - listRoutes[j].len() < epsilon and R > 0):
+            while (j <len(listRoutes) and listRoutes[i].len() - listRoutes[j].len() < epsilonDistCities and R > 0):
                 listRoutes.remove(listRoutes[j])
                 j += 1
                 R -= 1
@@ -267,7 +280,7 @@ def crossover(listRoutes, pe, initialRoutesNumber):
         
         iRoute1 = p[0].cityList.index(city)
         iRoute2 = p[1].cityList.index(city)
-        cities = p[0].cityList[:]
+        listCities = p[0].cityList[:]
         genRoute = []
         genRoute.append(city)
         
@@ -280,34 +293,34 @@ def crossover(listRoutes, pe, initialRoutesNumber):
             if canMove1:
                 if p[0].cityList[iRoute1] not in genRoute:
                     # Add the new city at the beginning of the generate list
-                    cities.remove(p[0].cityList[iRoute1])
+                    listCities.remove(p[0].cityList[iRoute1])
                     genRoute.insert(0, p[0].cityList[iRoute1])
                 else:
                     canMove1 = False
             if canMove2:
                 if p[1].cityList[iRoute2] not in genRoute:
                     # Add the new city at the end of the generate list
-                    cities.remove(p[1].cityList[iRoute2])
+                    listCities.remove(p[1].cityList[iRoute2])
                     genRoute.append(p[1].cityList[iRoute2])
                 else:
                     canMove2 = False
 
-        # Add randomly the remaining cities
-        genRoute = genRandomCities(genRoute, lenRoute, cities)
+        # Add randomly the remaining listCities
+        genRoute = genRandomCities(genRoute, lenRoute, listCities)
 
         # if the genRoute already exist, we generate a random route. So: no redundancy
         while (genRoute in listRoutes):
             genRoute = []
-            genRoute = genRandomCities(genRoute, lenRoute, cities)
+            genRoute = genRandomCities(genRoute, lenRoute, listCities)
                     
         listRoutes.append(Route(genRoute))
 
-def genRandomCities(genRoute, lenRoute, cities):
+def genRandomCities(genRoute, lenRoute, listCities):
     while (len(genRoute)-1 < lenRoute):
-            iCity = randint(0, len(cities)-1)
-            while cities[iCity] in genRoute:
-                iCity = randint(0, len(cities)-1)
-            genRoute.append(cities[iCity])
+            iCity = randint(0, len(listCities)-1)
+            while listCities[iCity] in genRoute:
+                iCity = randint(0, len(listCities)-1)
+            genRoute.append(listCities[iCity])
     return genRoute
 
 def swapRoute(route,i,j):
@@ -387,17 +400,17 @@ def initPygame():
     screen = pygame.display.get_surface() 
     font = pygame.font.Font(None,30)
 
-def draw(cities):
+def draw(listCities):
     screen.fill(0)
-    for c in cities:
+    for c in listCities:
         pygame.draw.circle(screen,city_color,(c.x,c.y),city_radius)
-    text = font.render("Nombre: %i" % len(cities), True, font_color)
+    text = font.render("Nombre: %i" % len(listCities), True, font_color)
     textRect = text.get_rect()
     screen.blit(text, textRect)
     pygame.display.flip()
 
+''' docstring for standartDeviation''' 
 def standartDeviation(tab):
-    """docstring for standartDeviation"""
     moyenne = 0
     for t in tab:
         moyenne += t
@@ -474,39 +487,39 @@ class Resolution(Thread):
         result.put(bestRoute)
 
 ''' generate a route looking "each nearest" city but without hard check !
-    just for begin with a first route "not too bad" '''
-def notTooBadSorting(cities):
+    just for begin with a first route "not too bad"''' 
+def notTooBadSorting(listCities):
     newCities = []
-    newCities.append(cities[0])
-    for i in range(len(cities)):
+    newCities.append(listCities[0])
+    for i in range(len(listCities)):
         if i != 0:
-            city = newCities[i-1].nearest(cities,newCities)
+            city = newCities[i-1].nearest(listCities,newCities)
             newCities.append(city)
     return newCities
 
+''' Resolution of the city traveller problem''' 
 @speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
-    """ Resolution of the city traveller problem """
-    global cities    
+    global listCities    
     # print "gui = ", gui
     #     print "maxtime = ", maxtime
     #     print "filename = ", file
         
     if file != None:
         f = open(file,"r")
-        cities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
+        listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
         
     new = []
-    for c in cities:
+    for c in listCities:
 		new.insert(0,c)
     new.reverse()
-    cities = new
+    listCities = new
     
-    badRoute = Route(cities)
+    badRoute = Route(listCities)
     print "badRoute len :", str(badRoute.len())
     
-    cities = notTooBadSorting(cities)
-    baseRoute = Route(cities)
+    listCities = notTooBadSorting(listCities)
+    baseRoute = Route(listCities)
     print "baseRoute len :", str(baseRoute.len())
         
     listRoutes=[]

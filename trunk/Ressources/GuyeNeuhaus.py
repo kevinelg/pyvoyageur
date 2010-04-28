@@ -36,6 +36,7 @@ font = None
 cities = []
 screen_x = 500
 screen_y = 500
+stopRunning = False
 
 city_color = [255,0,0] # blue
 city_radius = 3
@@ -290,19 +291,24 @@ def crossover(listRoutes, pe, initialRoutesNumber):
                     genRoute.append(p[1].cityList[iRoute2])
                 else:
                     canMove2 = False
+
+        # Add randomly the remaining cities
+        genRoute = genRandomCities(genRoute, lenRoute, cities)
+
+        # if the genRoute already exist, we generate a random route. So: no redundancy
+        while (genRoute in listRoutes):
+            genRoute = []
+            genRoute = genRandomCities(genRoute, lenRoute, cities)
                     
-        # Add randomly the remaining cities                
-        while (len(genRoute)-1 < lenRoute):
+        listRoutes.append(Route(genRoute))
+
+def genRandomCities(genRoute, lenRoute, cities):
+    while (len(genRoute)-1 < lenRoute):
             iCity = randint(0, len(cities)-1)
             while cities[iCity] in genRoute:
                 iCity = randint(0, len(cities)-1)
             genRoute.append(cities[iCity])
-                    
-        # Add the crossover Route to the list Routes    
-        # TODO: generate a random route if genRoute already in listRoute
-        #if genRoute not in listRoutes:
-        listRoutes.append(Route(genRoute))
-        #else:       
+    return genRoute
 
 def swapRoute(route,i,j):
     # Method 1
@@ -343,19 +349,23 @@ def mutation(listRoutes, pe, initialRoutesNumber):
         mutationPop.append(route1)
         listRoutes.remove(route1)
         R -= 1
-        
-    # TODO: check how to exit the loop if a stop is requested
+
     for route in mutationPop:
         routelen = route.len()
         for i in range(len(route.cityList)):
             for j in range(i+1,len(route.cityList)):
+                if stopRunning:
+                    break
                 # Check if an inversion is better or not
                 #if gainSwapCities(route,i,j) > 0:
                 #    route = swapCities(route,i,(j)%len(route.cityList))
                 if gainSwapRoute(route,i,j) > 0:
                     route = swapRoute(route,i,(j+1)%len(route.cityList))
-
+            if stopRunning:
+                break
             listRoutes.append(route)
+        if stopRunning:
+            break
 
 def gainSwapRoute(route, i, j):
     lenRoute = len(route.cityList)
@@ -386,8 +396,8 @@ def draw(cities):
     screen.blit(text, textRect)
     pygame.display.flip()
 
-def ecartType(tab):
-    """docstring for ecartType"""
+def standartDeviation(tab):
+    """docstring for standartDeviation"""
     moyenne = 0
     for t in tab:
         moyenne += t
@@ -442,7 +452,7 @@ class Resolution(Thread):
             lastResults[1:] = lastResults[0:]
             lastResults[0] = bestRoute.len()
             #print ">>lastResults = ", lastResults
-            et = ecartType(lastResults)
+            et = standartDeviation(lastResults)
             #print ">>Ecart type = ", et
 
             # for r in listRoutes:

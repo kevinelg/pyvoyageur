@@ -46,9 +46,9 @@ listCities = []             # each cities click bye user
 stopRunning = False         # True when maxime is done
 
 # ---- ga constants --- #
-initialRoutesNumber = 200   # maximum number of initial routes
-pe1 = 50                    # % of the population to eliminate and then add by crossover
-pe2 = 15                    # % of the population to choose for mutation
+initialRoutesNumber = 100   # maximum number of initial routes
+pe1 = 0                    # % of the population to eliminate and then add by crossover
+pe2 = 100                    # % of the population to choose for mutation (dynamic)
 epsilonDistCities = 5       # minimum distance between 2 listCities for natural selection
 
 
@@ -304,9 +304,9 @@ def crossover(listRoutes, pe, initialRoutesNumber):
         genRoute = genRandomCities(genRoute, lenRoute, listCities)
 
         # if the genRoute already exist, we generate a random route. So: no redundancy
-        while (genRoute in listRoutes):
-            genRoute = []
-            genRoute = genRandomCities(genRoute, lenRoute, listCities)
+        # while (genRoute in listRoutes):
+        #     genRoute = []
+        #     genRoute = genRandomCities(genRoute, lenRoute, listCities)
                     
         listRoutes.append(Route(genRoute))
 
@@ -429,6 +429,7 @@ class Resolution(Thread):
         self._stopevent = Event( )
         self.listRoutes = listRoutes
         self.gui = gui
+        print "T pe2 = ",pe2
     def stop(self):
         self._stopevent.set()
     def run(self):
@@ -469,7 +470,7 @@ def notTooBadSorting(listCities):
 @speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
     ''' Resolution of the city traveller problem''' 
-    global listCities    
+    global listCities, pe2, initialRoutesNumber 
         
     if file != None:
         f = open(file,"r")
@@ -490,9 +491,22 @@ def ga_solve(file=None, gui=True, maxtime=0):
     if gui:
         drawRoute(baseRoute)        
 
+    
+    # dynamic adaptation of the factors
+    if len(baseRoute.cityList)<50:
+        pe2 = 100
+        initialRoutesNumber = 100
+    else:
+        pe2 = 114 -7.0/25*len(baseRoute.cityList)
+        initialRoutesNumber = 67 + 2.0/3*len(baseRoute.cityList)
+    if pe2<10:
+        pe2 = 10
+    print "pe2", pe2
+    print "initialRoutesNumber",initialRoutesNumber
+
     listRoutes=[]
     initialRoutesNumber = generateRoutes(listRoutes, baseRoute)
-        
+    
     resolution = Resolution(listRoutes, gui)
     resolution.start()
     if (maxtime > 0):

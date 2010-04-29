@@ -65,7 +65,6 @@ class City(object):
         self.name = name
 
     def __str__(self):
-      # return self.name + " : " + str(self.x) +","+ str(self.y)
         return self.name
 
     def nearest(self, listCities, listCitiesCheck):
@@ -94,9 +93,7 @@ class Route(object):
         
     def len(self):
         ''' Process the length of a route''' 
-        length = 0
-        for i in range(len(self.cityList)-1):
-    		length += dist2City(self.cityList[i], self.cityList[i+1])
+    	length = sum([dist2City(self.cityList[i], self.cityList[i+1]) for i in range(len(self.cityList)-1)])
                 
     	# Add the distance between the first and last element of the cityList
     	length += dist2City(self.cityList[0], self.cityList[-1])
@@ -112,7 +109,6 @@ class Route(object):
                 return False
         return True
 
-
     def isContained(self, listRoutes):
         ''' Check if the self route is contained in the listRoutes ''' 
         for r in listRoutes:
@@ -121,35 +117,31 @@ class Route(object):
         return False
         
     def __str__(self):
-        tmp = "len : "
-        tmp += str(self.len()) + "\n"
+        tmp = "len : " + str(self.len()) + "\n"
         for c in self.cityList:
-            tmp += str(c)
-            tmp += " / "
+            tmp += str(c) + " / "
         return tmp
         
 class GeneticAlgorithm(object):
     ''' Contains all the genetics methodes to solve the problem '''
-    def __init__(self,listRoutes,pe1,pe2, initialRoutesNumber):
+    def __init__(self,listRoutes,pe1,pe2,initialRoutesNumber):
         self.listRoutes = listRoutes
         self.pe1 = pe1
         self.pe2 = pe2
-        print "pe1 :", pe1
-        print "pe2 :", pe2
         self.initialRoutesNumber = initialRoutesNumber
         
     # -------------------------------- #
-    # -- Central algorithm methodes -- #
+    # -- Central algorithm methods -- #
     # -------------------------------- #
         
     #@speedMeasure
     def selection(self):
+        ''' Process a selection by eliminating the similar individuals '''
         R = int(self.initialRoutesNumber * (self.pe1/100.0))
         # We sort the individual in lenght-value order
-        self.listRoutes.sort(key=lambda r:r.len())
+        self.sortListRoutesByLength()
             
         # Eliminate all similar individuals if the difference < epsilonDistCities
-        # TODO: optimize this part (create a temp array to hold the route to remove)
         i=0
         while i<len(self.listRoutes)-1 and R > 0:
             if (self.listRoutes[i].len() - self.listRoutes[i+1].len() < epsilonDistCities):
@@ -167,6 +159,7 @@ class GeneticAlgorithm(object):
     
     #@speedMeasure
     def crossover(self):
+        ''' Process a crossover between routes '''
         R = int(self.initialRoutesNumber * (self.pe1/100.0))
             
         pairList = []    
@@ -182,7 +175,7 @@ class GeneticAlgorithm(object):
             
         # Make the crossover
         for p in pairList:
-            # Route length - first city -last city
+            # Route length - first city - last city
             lenRoute = len(p[0].cityList)-1
             # Choose a random city (except the starting city: first and last in list)
             city = p[0].cityList[randint(1,lenRoute)]
@@ -217,7 +210,7 @@ class GeneticAlgorithm(object):
             # Add randomly the remaining listCities
             genRoute = genRandomCities(genRoute, lenRoute, listCities)
     
-            # if the genRoute already exist, we generate a random route. So: no redundancy
+            # if the genRoute already exist, we generate a random route. So: no redundancy (no improvement)
             # while (genRoute in self.listRoutes):
             #     genRoute = []
             #     genRoute = genRandomCities(genRoute, lenRoute, listCities)
@@ -226,9 +219,11 @@ class GeneticAlgorithm(object):
     
     #@speedMeasure
     def mutation(self):
+        ''' Process a mutation based on the 2opt method '''
         # Retrieve pe% of individuals (- the elite individual)
-        R = int(self.initialRoutesNumber * (self.pe2/100.0))-1
+        R = int(self.initialRoutesNumber * (self.pe2/100.0)) - 1
         mutationPop = []
+        
         # Allways add the elite individual
         mutationPop.append(self.listRoutes[0])
         self.listRoutes.remove(self.listRoutes[0])
@@ -239,40 +234,45 @@ class GeneticAlgorithm(object):
             mutationPop.append(route1)
             self.listRoutes.remove(route1)
             R -= 1
-    
+        
+        # Find a mutation that minimize the length
         for route in mutationPop:
             for i in range(len(route.cityList)):
                 for j in range(i+1,len(route.cityList)):
                     if stopRunning:
                         break
                     # Check if a cities inversion is better (Method give not good results)
-                    #if gainSwapCities(route,i,j) > 0:
-                    #    route = swapCities(route,i,(j)%len(route.cityList))
+                    #if self.gainSwapCities(route,i,j) > 0:
+                    #    route = self.swapCities(route,i,(j)%len(route.cityList))
                     # Check if a route inversion is better
                     if self.gainSwapRoute(route,i,j) > 0:
                         route = self.swapRoute(route,i,(j+1)%len(route.cityList))
                 if stopRunning:
                     break
+            self.listRoutes.append(route)
             if stopRunning:
                 break
-            self.listRoutes.append(route)
+            
     
     # ------------------------------ #
-    # -- Tools algorithm methodes -- #
+    # -- Tools algorithm methods -- #
     # ------------------------------ #
     
     def sortListRoutesByLength(self):
+        ''' Sort the routes by length '''
         self.listRoutes.sort(key=lambda r:r.len())
     
     def genRandomCities(self,genRoute, lenRoute, listCities):
+        ''' Generate a random route from the cities of listCities '''
         while (len(genRoute)-1 < lenRoute):
+            iCity = randint(0, len(listCities)-1)
+            while listCities[iCity] in genRoute:
                 iCity = randint(0, len(listCities)-1)
-                while listCities[iCity] in genRoute:
-                    iCity = randint(0, len(listCities)-1)
-                genRoute.append(listCities[iCity])
+            genRoute.append(listCities[iCity])
         return genRoute
     
     def swapRoute(self,route,i,j):
+        ''' Swap the route between i and j and return a new Route '''
         # Method 1
         tmp = route.cityList[i:j]
         tmpRoute = Route(route.cityList)
@@ -284,22 +284,18 @@ class GeneticAlgorithm(object):
         return tmpRoute
     
     def swapCities(self,route,i,j):
-        # Method 1
-        tmp = route.cityList[i]
+        ''' Swap cities i and j and return a new Route '''
         tmpRoute = Route(route.cityList)
-        tmpRoute.cityList[i] = tmpRoute.cityList[j]
-        tmpRoute.cityList[j] = tmp
-            
-        # Method 2: OTHER SOLUTION (a bit slower)        
-        # tmpRoute = Route(route.cityList)
-        # tmpRoute.cityList[i:j] = route.cityList[i:j][::-1]
+        tmpRoute.cityList[i], tmpRoute.cityList[j] = tmpRoute.cityList[j], tmpRoute.cityList[i]
         return tmpRoute
     
-    def gainSwapRoute(self,route, i, j):
+    def gainSwapRoute(self,route,i,j):
+        ''' Process the gain between a swap of a route (between i to j) '''
         lenRoute = len(route.cityList)
         return dist2City(route.cityList[(i-1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[j]) - (dist2City(route.cityList[(i-1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[i]))
     
-    def gainSwapCities(self,route, i, j):
+    def gainSwapCities(self,route,i,j):
+        ''' Process the gain between a swap of 2 cities (i and j)'''
         lenRoute = len(route.cityList)
         tmp1 = dist2City(route.cityList[(i-1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(i+1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(j-1)%lenRoute], route.cityList[j])
         tmp2 = dist2City(route.cityList[(i-1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(i+1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(j-1)%lenRoute], route.cityList[i])
@@ -312,21 +308,21 @@ class Resolution(Thread):
         self._stopevent = Event( )
         self.listRoutes = listRoutes
         self.gui = gui
-        print "T pe2 = ",pe2
         
     def stop(self):
-        ''' thread asked to be stopped '''
+        ''' Thread asked to stop '''
         global stopRunning
         self._stopevent.set()
         stopRunning = True
         
     def run(self):
-        ''' the main fonction to solve the problem '''
+        ''' The main loop to solve the problem '''
         lastResults= [0,0]
         sd = sys.maxint
         bestRoute= self.listRoutes[0]
         genAlgo = GeneticAlgorithm(self.listRoutes,pe1,pe2, initialRoutesNumber)
-        while(sd > 1 and not self._stopevent.isSet()):
+        while(sd > 1 and not self._stopevent.isSet() and not stopRunning):
+            print "Run"
             genAlgo.selection()
             genAlgo.crossover()
             genAlgo.mutation()
@@ -334,15 +330,19 @@ class Resolution(Thread):
             genAlgo.sortListRoutesByLength()
 
             # Process the standard deviation
-            bestRoute = genAlgo.listRoutes[0]
-            lastResults.pop()
-            lastResults[1:] = lastResults[0:]
-            lastResults[0] = bestRoute.len()
+            # TODO: Fix the bug when using the PVC tester (crash because listRoutes is empty)
+            if not stopRunning:
+                bestRoute = genAlgo.listRoutes[0]
+                lastResults.pop()
+                lastResults[1:] = lastResults[0:]
+                lastResults[0] = bestRoute.len()
             
-            sd = standartDeviation(lastResults)
+                sd = standardDeviation(lastResults)
+                print "T", lastResults[0]
 
             if self.gui:
                 drawRoute(bestRoute)
+        print "THREAD",bestRoute.len()
         result.put(bestRoute)
 
 #================================================
@@ -369,8 +369,13 @@ It is an optional argument.'''
     if args<>[] and os.path.isfile(args[-1]):
         filename = args[-1]
         collecting = False
-    initPygame()
-    drawCities(listCities)
+    else:
+        if not options.gui:
+            print "You cannot disabled the GUI and enter the points manually."
+            sys.exit()
+
+    if options.gui:
+        initPygame()
 
     while collecting:
         for event in pygame.event.get():
@@ -382,31 +387,34 @@ It is an optional argument.'''
                 (x,y) = pygame.mouse.get_pos()
                 listCities.append(City(x,y,"v" + str(len(listCities))))
                 drawCities(listCities)
-    screen.fill(0)
+
     ga_solve(filename, options.gui, options.maxtime)
         
-    while True:
-        event = pygame.event.wait()
-        if event.type == KEYDOWN: break
+    if options.gui:
+        while True:
+            event = pygame.event.wait()
+            if event.type == KEYDOWN: break
 
 #================================================
-#              Methodes
+#              Methods
 #================================================
 
 def fac(n):
-    ''' Return the factorial of a number''' 
+    ''' Return the factorial of a number 
+    This functions is only needed if python version <= 2.5
+    There is math.factorial available then ''' 
     p=1
     for i in range(1,n+1):
         p*=i
     return p
 
 def dist2City(city1, city2):
-    ''' return the distance between 2 listCities''' 
+    ''' Return the distance between 2 listCities ''' 
     return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
 
 #@speedMeasure
 def generateRoutes(listRoutes, baseRoute):
-    ''' generate the number of listRoutes required''' 
+    ''' Generate the number of listRoutes required ''' 
     cpt=1
     lenCityList = len(baseRoute.cityList)    
     # Generate a random indexList
@@ -419,7 +427,7 @@ def generateRoutes(listRoutes, baseRoute):
         indexList.append(tmp)
         cpt += 1
         
-    # generate the baseRoute list with the generated indexList
+    # Generate the baseRoute list with the generated indexList
     for j in indexList:
         cityList = []
         [cityList.append(baseRoute.cityList[i]) for i in j]
@@ -441,25 +449,22 @@ def shake(initialList):
     return indexList
         
 def maxPossibilities(lenCityList):
-    ''' return the maximum number of different listRoutes'''
+    ''' return the maximum number of different listRoutes '''
+    #return math.factorial(lenCityList-1) # Works only with Python 2.6
     return fac(lenCityList-1)
 
-def standartDeviation(tab):
-    ''' calcul and return the standart deviation''' 
-    moyenne = 0
-    for t in tab:
-        moyenne += t
-    moyenne /= len(tab)
-    et = 0
-    for t in tab:
-        et += (t-moyenne)**2
+def standardDeviation(tab):
+    ''' Process and return the standard deviation ''' 
+    moyenne = float(sum(tab)) / len(tab)
+    et = sum([(t-moyenne)**2 for t in tab])
     return math.sqrt(et)
     
 # ------------------ #
-# -- gui methodes -- #
+# -- GUI methods -- #
 # ------------------ #
 
 def initPygame():
+    ''' Initialise Pygame '''
     global screen
     global font
     pygame.init() 
@@ -469,6 +474,7 @@ def initPygame():
     font = pygame.font.Font(None,30)
 
 def drawCities(listCities):
+    ''' Draw all cities with a circle '''
     screen.fill(0)
     [pygame.draw.circle(screen,city_color,(c.x,c.y),city_radius) for c in listCities]
     text = font.render("Nombre: %i" % len(listCities), True, font_color)
@@ -477,6 +483,7 @@ def drawCities(listCities):
     pygame.display.flip()
 
 def drawRoute(route):
+    ''' Draw the route with lines and display its length '''
     screen.fill(0)
     pos = []
     [pos.append((c.x,c.y)) for c in route.cityList]
@@ -490,25 +497,17 @@ def notTooBadSorting(listCities):
     ''' Just for begin with a first route "not too bad". Generate a route looking "each nearest" city WITHOUT complexe check ! ''' 
     newCities = []
     newCities.append(listCities[0])
-    for i in range(len(listCities)):
-        if i != 0:
-            city = newCities[i-1].nearest(listCities,newCities)
-            newCities.append(city)
+    [newCities.append(newCities[i-1].nearest(listCities,newCities)) for i in range(len(listCities)) if i <> 0]
     return newCities
 
-@speedMeasure
+#@speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
-    ''' Resolution of the city traveller problem''' 
+    ''' Resolution of the city traveller problem ''' 
     global listCities, pe2, initialRoutesNumber 
         
     if file != None:
         f = open(file,"r")
         listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
-        
-    new = []
-    [new.insert(0,c) for c in listCities]
-    new.reverse()
-    listCities = new
     
     # First base route (random => so very bad route...)
     badRoute = Route(listCities)
@@ -516,31 +515,38 @@ def ga_solve(file=None, gui=True, maxtime=0):
     # Optimize the base route
     listCities = notTooBadSorting(listCities)
     baseRoute = Route(listCities)
-        
+    print baseRoute.len()
     if gui:
         drawRoute(baseRoute)        
     
-    # dynamic adaptation of the factors
+    # Dynamic adaptation of the factors
     if len(baseRoute.cityList)<50:
         pe2 = 100
         initialRoutesNumber = 100
     else:
+        # Linear scaling to have: 50 cities > pe2=100 / 300 cities > pe2=30
         pe2 = 114 -7.0/25*len(baseRoute.cityList)
+        # Linear scaling to have: 50 cities > pop=100 / 200 cities > pop=200
         initialRoutesNumber = 67 + 2.0/3*len(baseRoute.cityList)
     if pe2<10:
         pe2 = 10
 
     listRoutes=[]
+    # TODO: Insert this function in the Resolution class
     initialRoutesNumber = generateRoutes(listRoutes, baseRoute)
-    
+
     resolution = Resolution(listRoutes, gui)
+    # TODO: Resolve problem with PVCtester: if used, it allways returns 
     resolution.start()
+    # Stop the thread when reaching the maxtime allowed
     if (maxtime > 0):
         time.sleep(maxtime)
+        print "Timer",maxtime
         resolution.stop()
+    # Retrieve the best route from the queue
     bestRoute = result.get()
-    tmp =(bestRoute.len(), [c.name for c in bestRoute.cityList[:]])
-    return tmp
+    print bestRoute.len()
+    return (bestRoute.len(), [c.name for c in bestRoute.cityList[:]])
 
 if __name__ == '__main__':
     main()

@@ -56,8 +56,9 @@ epsilonDistCities = 5       # minimum distance between 2 listCities for natural 
 #              Classes
 #================================================
 
-''' Representation of a city''' 
+
 class City(object):
+    ''' Representation of a city''' 
     __slots__ = ['x','y','name']
     def __init__(self, x, y, name):
         self.x = x
@@ -68,10 +69,10 @@ class City(object):
       # return self.name + " : " + str(self.x) +","+ str(self.y)
         return self.name
 
-    ''' In  :   listCities as the list contains ALL of the cities
-    listCitiesCheck as the list contains all the cities already treated
-    Out :   The nearest city of self that it isn't contained in listCitiesCheck.'''
     def nearest(self, listCities, listCitiesCheck):
+        ''' In  :   listCities as the list contains ALL of the cities
+        listCitiesCheck as the list contains all the cities already treated
+        Out :   The nearest city of self that it isn't contained in listCitiesCheck.'''
         cityNearest = listCities[0]
         i=1
         while cityNearest == self or cityNearest in listCitiesCheck:
@@ -86,8 +87,8 @@ class City(object):
 
         return cityNearest
 
-''' Route with each cities '''
 class Route(object):
+    ''' Route with each cities '''
     __slots__ = ['cityList']
     def __init__(self, cityList):
     	self.cityList = cityList[:]
@@ -112,8 +113,9 @@ class Route(object):
                 return False
         return True
 
-    ''' Check if the self route is contained in the listRoutes ''' 
+
     def isContained(self, listRoutes):
+        ''' Check if the self route is contained in the listRoutes ''' 
         for r in listRoutes:
             if r.isEgal(self):
                 return True
@@ -136,7 +138,7 @@ def main():
     usage =''' usage: %prog [options] [filename]
 This script is intend to solve the Travel Salesman problem (TSP) problem.
 
-[filename] is a file that contains the coordinates of the listCities.
+[filename] is a file that contains the coordinates of the cities.
 The format of this file is: NAME1 XPos1 YPos1
 It is an optional argument.''' 
 
@@ -151,9 +153,8 @@ It is an optional argument.'''
     if args<>[] and os.path.isfile(args[-1]):
         filename = args[-1]
         collecting = False
-    print "Collecting = ", collecting
     initPygame()
-    draw(listCities)
+    drawCities(listCities)
 
     while collecting:
         for event in pygame.event.get():
@@ -164,7 +165,7 @@ It is an optional argument.'''
             elif event.type == MOUSEBUTTONDOWN:
                 (x,y) = pygame.mouse.get_pos()
                 listCities.append(City(x,y,"v" + str(len(listCities))))
-                draw(listCities)
+                drawCities(listCities)
     screen.fill(0)
     ga_solve(filename, options.gui, options.maxtime)
         
@@ -175,28 +176,22 @@ It is an optional argument.'''
 #================================================
 #              Methodes
 #================================================
-
-''' Return the orial of a number''' 
 def fac(n):
+    ''' Return the factorial of a number''' 
     p=1
     for i in range(1,n+1):
         p*=i
     return p
 
-''' return the distance between 2 listCities''' 
 def dist2City(city1, city2):
-	return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
+    ''' return the distance between 2 listCities''' 
+    return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
 
-
-''' generate the number of listRoutes required''' 
 @speedMeasure
 def generateRoutes(listRoutes, baseRoute):
-    # TODO: Optimize the initialRoute
+    ''' generate the number of listRoutes required''' 
     cpt=1
-    cityList = []
-    # The city list contains already the last city
-    lenCityList = len(baseRoute.cityList)
-    
+    lenCityList = len(baseRoute.cityList)    
     # Generate a random indexList
     indexList = []
     indexList.append(range(lenCityList))
@@ -210,27 +205,27 @@ def generateRoutes(listRoutes, baseRoute):
     # generate the baseRoute list with the generated indexList
     for j in indexList:
         cityList = []
-        for i in j:
-            cityList.append(baseRoute.cityList[i])
+        [cityList.append(baseRoute.cityList[i]) for i in j]
         listRoutes.append(Route(cityList))
         
     return len(listRoutes)
 
-''' Return a list shaken ''' 
+
 def shake(initialList):
+    ''' Return a list shaken ''' 
     indexList = []
     # The first element is allways the starting city
     indexList.append(0)
         
-    for cmpt in range(initialList-1):
+    for cpt in range(initialList-1):
         i = randint(1,initialList-1)
         while (i in indexList):
             i = randint(1,initialList-1)
         indexList.append(i)
     return indexList
         
-''' return the maximum number of different listRoutes'''
 def maxPossibilities(lenCityList):
+    ''' return the maximum number of different listRoutes'''
     return fac(lenCityList-1)
 
 #@speedMeasure
@@ -348,7 +343,6 @@ def swapCities(route,i,j):
 
 #@speedMeasure
 def mutation(listRoutes, pe, initialRoutesNumber):
-    # TODO: optimise the mutation
     # Retrieve pe% of individuals (- the elite individual)
     R = int(initialRoutesNumber * (pe/100.0)) -1
     mutationPop = []
@@ -364,21 +358,21 @@ def mutation(listRoutes, pe, initialRoutesNumber):
         R -= 1
 
     for route in mutationPop:
-        routelen = route.len()
         for i in range(len(route.cityList)):
             for j in range(i+1,len(route.cityList)):
                 if stopRunning:
                     break
-                # Check if an inversion is better or not
+                # Check if a cities inversion is better (Method give not good results)
                 #if gainSwapCities(route,i,j) > 0:
                 #    route = swapCities(route,i,(j)%len(route.cityList))
+                # Check if a route inversion is better
                 if gainSwapRoute(route,i,j) > 0:
                     route = swapRoute(route,i,(j+1)%len(route.cityList))
             if stopRunning:
                 break
-            listRoutes.append(route)
         if stopRunning:
             break
+        listRoutes.append(route)
 
 def gainSwapRoute(route, i, j):
     lenRoute = len(route.cityList)
@@ -400,17 +394,26 @@ def initPygame():
     screen = pygame.display.get_surface() 
     font = pygame.font.Font(None,30)
 
-def draw(listCities):
+def drawCities(listCities):
     screen.fill(0)
-    for c in listCities:
-        pygame.draw.circle(screen,city_color,(c.x,c.y),city_radius)
+    [pygame.draw.circle(screen,city_color,(c.x,c.y),city_radius) for c in listCities]
     text = font.render("Nombre: %i" % len(listCities), True, font_color)
     textRect = text.get_rect()
     screen.blit(text, textRect)
     pygame.display.flip()
 
-''' docstring for standartDeviation''' 
+def drawRoute(route):
+    screen.fill(0)
+    pos = []
+    [pos.append((c.x,c.y)) for c in route.cityList]
+    [pygame.draw.lines(screen,city_color,True,pos) for c in pos]
+    text = font.render("Length = "+str(route.len()) , True, font_color)
+    textRect = text.get_rect()
+    screen.blit(text, textRect)
+    pygame.display.flip()
+
 def standartDeviation(tab):
+    ''' docstring for standartDeviation''' 
     moyenne = 0
     for t in tab:
         moyenne += t
@@ -421,14 +424,10 @@ def standartDeviation(tab):
     return math.sqrt(et)
 
 class Resolution(Thread):
-    def __init__(self, listRoutes, initialRoutesNumber, pos, pe1, pe2, gui):
+    def __init__(self, listRoutes, gui):
         Thread.__init__(self)
         self._stopevent = Event( )
         self.listRoutes = listRoutes
-        self.initialRoutesNumber = initialRoutesNumber
-        self.pos = pos
-        self.pe1 = pe1
-        self.pe2 = pe2
         self.gui = gui
     def stop(self):
         self._stopevent.set()
@@ -437,24 +436,9 @@ class Resolution(Thread):
         et = sys.maxint
         bestRoute= self.listRoutes[0]
         while(et > 1 and not self._stopevent.isSet()):
-            #print "\n*** SELECTION ***"
-            selection(self.listRoutes, self.pe1, self.initialRoutesNumber)
-            #print "after selection :"
-            #for r in listRoutes:
-            #    print r
-
-            #print "\n*** CROSSOVER ***"        
-            crossover(self.listRoutes, self.pe1, self.initialRoutesNumber)
-            #print "after crossover :"
-            #for r in listRoutes:
-            #    print r
-
-            #print "\n*** MUTATION ***"                
-            mutation(self.listRoutes, self.pe2, self.initialRoutesNumber)
-
-            #print "after mutation :"
-            #for r in listRoutes:
-            #    print r
+            selection(self.listRoutes, pe1, initialRoutesNumber)
+            crossover(self.listRoutes, pe1, initialRoutesNumber)
+            mutation(self.listRoutes, pe2, initialRoutesNumber)
 
             # sort all routes in length-value order
             self.listRoutes.sort(key=lambda r:r.len())
@@ -464,26 +448,10 @@ class Resolution(Thread):
             lastResults.pop()
             lastResults[1:] = lastResults[0:]
             lastResults[0] = bestRoute.len()
-            #print ">>lastResults = ", lastResults
             et = standartDeviation(lastResults)
-            #print ">>Ecart type = ", et
 
-            # for r in listRoutes:
-            #     if r.len() < bestRoute.len():
-            #         bestRoutes = r
-
-            # Display the length of the route
-            #print "len : ", bestRoute.len()
-
-            self.pos = []
-            [self.pos.append((c.x,c.y)) for c in bestRoute.cityList]
             if self.gui:
-                screen.fill(0)
-                pygame.draw.lines(screen,city_color,True,self.pos)
-                text = font.render("Length = "+str(bestRoute.len()) , True, font_color)
-                textRect = text.get_rect()
-                screen.blit(text, textRect)
-                pygame.display.flip()
+                drawRoute(bestRoute)
         result.put(bestRoute)
 
 ''' generate a route looking "each nearest" city but without hard check !
@@ -497,57 +465,41 @@ def notTooBadSorting(listCities):
             newCities.append(city)
     return newCities
 
-''' Resolution of the city traveller problem''' 
+
 @speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
+    ''' Resolution of the city traveller problem''' 
     global listCities    
-    # print "gui = ", gui
-    #     print "maxtime = ", maxtime
-    #     print "filename = ", file
         
     if file != None:
         f = open(file,"r")
         listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
         
     new = []
-    for c in listCities:
-		new.insert(0,c)
+    [new.insert(0,c) for c in listCities]
     new.reverse()
     listCities = new
     
+    # First base route
     badRoute = Route(listCities)
-    print "badRoute len :", str(badRoute.len())
-    
+
+    # Optimize the base route    
     listCities = notTooBadSorting(listCities)
     baseRoute = Route(listCities)
-    print "baseRoute len :", str(baseRoute.len())
         
-    listRoutes=[]
-        
-    pos = []
-    [pos.append((c.x,c.y)) for c in baseRoute.cityList]
     if gui:
-        screen.fill(0)
-        pygame.draw.lines(screen,city_color,True,pos)
-        text = font.render("Length = "+str(baseRoute.len()) , True, font_color)
-        textRect = text.get_rect()
-        screen.blit(text, textRect)
-        pygame.display.flip()
-        
-    # print "\n*** GENERATE ROUTES ***"
+        drawRoute(baseRoute)        
+
+    listRoutes=[]
     initialRoutesNumber = generateRoutes(listRoutes, baseRoute)
-    # print "after generateRoutes :"
-    # for r in listRoutes:
-    #     print r
         
-    resolution = Resolution(listRoutes, initialRoutesNumber, pos, pe1, pe2, gui)
+    resolution = Resolution(listRoutes, gui)
     resolution.start()
     if (maxtime > 0):
         time.sleep(maxtime)
         resolution.stop()
     bestRoute = result.get()
     tmp =(bestRoute.len(), [c.name for c in bestRoute.cityList[:]])
-    print str(tmp)
     return tmp
 
 if __name__ == '__main__':

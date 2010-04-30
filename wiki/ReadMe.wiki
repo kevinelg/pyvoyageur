@@ -76,7 +76,6 @@ ce qui correspond à :
 || TSPchapter.pdf || Explications et tests de différents algorithmes (plus détaillés) ||
 || testPerformance.xls || Tests de performance et des optimisations réalisées avec notre implémentation ||
 
-asdf
 ===Ressources===
 || Dossier "data" || contient les villes d'exemples ||
 || GUI_example.py || mode d'emploi du GUI ||

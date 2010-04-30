@@ -29,17 +29,19 @@ Pour chaque paire de trajet:
 Nous avions également implémenté un algorithme d'échange de villes ainsi que sa fonction de mesure du gain. Mais les résultats n'étaient pas concluants (temps plus long et résultats de mauvaises qualités ou en tout cas pas meilleurs)
 
 ===Choix de la population===
-  # Trajet de base :
+  # Un trajet de base :
    # Trajet dans l'ordre d'arrivée des villes
    # Réorganisation de ce trajet vers un résultat _pas trop mauvais_
     # On crée un nouveau trajet en ajoutant à chaque fois la ville la plus proche de la ville courante pas encore traitée
-  # Trajets suivants
+  # Reste de la population
    # Génération aléatoire d'indice qui représentent des trajets aléatoires.
 
 La population de base varie en fonction du nombre de villes:
   * si le nombre de ville < 50 alors population = 100
   * sinon population = 67 + 2/3 * nbVille
-ce qui correspond Ã  population = 100 pour 50 villes / population = 200 pour 200 villes
+ce qui correspond à : 
+  * population = 100 pour 50 villes
+  * population = 200 pour 200 villes
 
 ===Choix du % de sélection et croisement à faire (pe1)===
 Nous avons remarqué que nous obtenions les meilleurs résultats lorsque la sélection et le croisement n'était pas effectué (pe1=0%)

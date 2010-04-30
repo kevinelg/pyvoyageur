@@ -59,12 +59,14 @@ ce qui correspond à :
 
 ===Arbre===
 
+{{{
 /
 |--Donnee.pdf
 |--Documents
   |-- # Documents utilisé pour le projet. Voir le listing détaillé plus bas
 |--Ressources
   |-- # Toutes les ressources utilisées durant le projet, avec notre module final du voyageur de commerce (*GuyeNeuhaus.py*)
+}}}
 
 ===Documents===
 || arob98.pdf || Explications sur l'implémentation d'un algorithme génétique pour résoudre le PVC ||

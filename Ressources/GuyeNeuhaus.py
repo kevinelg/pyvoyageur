@@ -140,9 +140,9 @@ class GeneticAlgorithm(object):
             self.initialRoutesNumber = 100
         else:
             # Linear scaling to have: 50 cities > pe2=100 / 300 cities > pe2=30
-            self.pe2 = 114 - 7.0/25*len(baseRoute.cityList)
+            self.pe2 = 114 - 7.0/25*len(self.baseRoute.cityList)
             # Linear scaling to have: 50 cities > pop=100 / 200 cities > pop=200
-            self.initialRoutesNumber = 67 + 2.0/3*len(baseRoute.cityList)
+            self.initialRoutesNumber = 67 + 2.0/3*len(self.baseRoute.cityList)
         if pe2<10:
             self.pe2 = 10
         
@@ -390,7 +390,7 @@ class Resolution(threading.Thread):
         ''' The main loop to solve the problem '''
         lastResults= [0,0]
         sd = sys.maxint
-        genAlgo = GeneticAlgorithm(self.listCities, pe1)
+        genAlgo = GeneticAlgorithm(self.listCities)
         bestRoute = genAlgo.baseRoute
         genAlgo.generateRoutes()
         while(sd > 1 and not self._stopevent.isSet() and not self.stopRunning):

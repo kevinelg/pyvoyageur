@@ -2,7 +2,7 @@ Raphael Guye et Jonathan Neuhaus
 
 == Description de notre implémentation ==
 ===Sélection===
-  * On choisit _pe1_% de la population à éliminer (= R individu)
+  * On choisit pe1% de la population à éliminer (= R individu)
   * On trie nos différents trajets.
   * On élimine toutes les valeurs proches (dont la longueur entre 2 individue < epsilonDistCities), ceci tant que R > 0
    * Si il reste encore des individus à éliminer, on élimine les plus faibles.
@@ -13,8 +13,8 @@ Raphael Guye et Jonathan Neuhaus
 Pour chaque paire de trajet:
   * On choisit une ville aléatoirement
   * On va créer un nouveau trajet de la manière suivante :
-   * À partir du trajet 1, on ajoute les villes *à gauche* de la ville déjà choisie tant que la ville ne se situe pas déjà  dans le nouveau trajet, en cours de génération
-   * À partir du trajet 2, on ajoute les villes *à droite* de la ville déjà choisie tant que la ville ne se situe pas déjà dans le nouveau trajet, en cours de génération
+   * À partir du trajet 1, on ajoute les villes *à gauche* de la ville déjà choisie tant que la ville ne se situe pas déjà  dans le nouveau trajet en cours de génération
+   * À partir du trajet 2, on ajoute les villes *à droite* de la ville déjà choisie tant que la ville ne se situe pas déjà dans le nouveau trajet en cours de génération
   * Une fois que l'on ne peut plus ajouter de villes ni à droite ni à gauche, on ajoute le reste des villes présentes dans le trajet 1 aléatoirement
 
 ===Mutation===
@@ -22,10 +22,12 @@ Pour chaque paire de trajet:
   * On sélectionne dans tous les cas la meilleure solution.
   * On ajoute aléatoirement des trajets dans la liste des trajets à muter.
 
-Pour toute paire de ville i,j on vérifie si le fait d'inverser le trajet entre ces 2 villes apporte un gain. Si c'est le cas, on inverse le trajet et on continue.
-On s'arrète lorsque toutes les combinaisons ont étées passées en revue.
+  * Pour toute paire de ville i,j :
+   * On vérifie si le fait d'inverser le trajet entre ces 2 villes apporte un gain.
+=> Si c'est le cas, on inverse le trajet et on continue.
+   * Lorsque toutes les combinaisons ont étées passées en revue => On s'arrête.
 
-Nous avons également implémenté un algorithme d'échange de villes ainsi que sa fonction de mesure du gain, mais les résultats ne sont pas concluants (temps plus long et résultats de mauvaises qualités)
+Nous avions également implémenté un algorithme d'échange de villes ainsi que sa fonction de mesure du gain. Mais les résultats n'étaient pas concluants (temps plus long et résultats de mauvaises qualités ou en tout cas pas meilleurs)
 
 ===Choix de la population===
 Dans un premier temps, nous nous contentons de prendre le trajet de base tel que décrit dans le fichier ou dans l'ordre entré à la main.

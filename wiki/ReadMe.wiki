@@ -38,7 +38,7 @@ Nous avions également implémenté un algorithme d'échange de villes ainsi que
 
 La population de base varie en fonction du nombre de villes:
   * si le nombre de ville < 50 alors population = 100
-  * sinon population = 67 + 2/3 * nbVille
+  * sinon population = 67 + 2/3 ** nbVille
 ce qui correspond à : 
   * population = 100 pour 50 villes
   * population = 200 pour 200 villes

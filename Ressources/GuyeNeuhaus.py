@@ -41,13 +41,9 @@ font_color = [255,255,255]  # white font for text
 
 # ------ ga tools ----- #
 result = Queue(1)           # finish result - best routes
-#listCities = []             # each cities click bye user
 stopRunning = False         # True when maxime is done
 
 # ---- ga constants --- #
-initialRoutesNumber = 100   # maximum number of initial routes
-pe1 = 0                    # % of the population to eliminate and then add by crossover
-pe2 = 100                    # % of the population to choose for mutation (dynamic)
 epsilonDistCities = 5       # minimum distance between 2 listCities for natural selection
 
 
@@ -126,8 +122,6 @@ class GeneticAlgorithm(object):
     def __init__(self,listCities):
         self.listRoutes = []
         self.initialRoutesNumber = 0
-        # First base route (random => so very bad route...)
-        self.badRoute = Route(listCities)
 
         # Optimize the base route
         self.listCities = notTooBadSorting(listCities)
@@ -143,7 +137,7 @@ class GeneticAlgorithm(object):
             self.pe2 = 114 - 7.0/25*len(self.baseRoute.cityList)
             # Linear scaling to have: 50 cities > pop=100 / 200 cities > pop=200
             self.initialRoutesNumber = 67 + 2.0/3*len(self.baseRoute.cityList)
-        if pe2<10:
+        if self.pe2<10:
             self.pe2 = 10
         
     # -------------------------------- #
@@ -291,11 +285,9 @@ class GeneticAlgorithm(object):
             if stopRunning:
                 break
             
-    
     # ------------------------------ #
     # -- Tools algorithm methods -- #
     # ------------------------------ #
-    
     
     def fac(self, n):
         ''' Return the factorial of a number 
@@ -368,8 +360,6 @@ class GeneticAlgorithm(object):
         tmp2 = dist2City(route.cityList[(i-1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(i+1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(j-1)%lenRoute], route.cityList[i])
         return tmp1 - tmp2
         
-        
-        
 class Resolution(threading.Thread):
     ''' Class called to solve the problem in a thread '''
     def __init__(self, listCities, gui):
@@ -393,6 +383,9 @@ class Resolution(threading.Thread):
         genAlgo = GeneticAlgorithm(self.listCities)
         bestRoute = genAlgo.baseRoute
         genAlgo.generateRoutes()
+        
+        if self.gui:
+            drawRoute(bestRoute, False)
         while(sd > 1 and not self._stopevent.isSet() and not self.stopRunning):
             genAlgo.selection()
             genAlgo.crossover()
@@ -410,8 +403,92 @@ class Resolution(threading.Thread):
                 sd = standardDeviation(lastResults)
 
             if self.gui:
-                drawRoute(bestRoute)
+                drawRoute(bestRoute, False)
+                
+        drawRoute(bestRoute, True)
         result.put(bestRoute)
+
+#================================================
+#              Methods
+#================================================
+
+# ----------------- #
+# -- GUI methods -- #
+# ----------------- #
+
+def initPygame():
+    ''' Initialise Pygame '''
+    global screen
+    global font
+    pygame.init() 
+    window = pygame.display.set_mode((screen_x, screen_y)) 
+    pygame.display.set_caption('Exemple') 
+    screen = pygame.display.get_surface() 
+    font = pygame.font.Font(None,30)
+
+def drawCities(listCities):
+    ''' Draw all cities with a circle '''
+    screen.fill(0)
+    [pygame.draw.circle(screen,city_color,(c.x,c.y),city_radius) for c in listCities]
+    text = font.render("Nombre: %i" % len(listCities), True, font_color)
+    textRect = text.get_rect()
+    screen.blit(text, textRect)
+    pygame.display.flip()
+
+def drawRoute(route, isTheEnd):
+    ''' Draw the route with lines and display its length '''
+    screen.fill(0)
+    pos = []
+    [pos.append((c.x,c.y)) for c in route.cityList]
+    [pygame.draw.lines(screen,city_color,True,pos) for c in pos]
+    if isTheEnd:
+        text = font.render("Best Length found = "+str(route.len()) , True, font_color)
+    else:
+        text = font.render("Length = "+str(route.len()) , True, font_color)
+    textRect = text.get_rect()
+    screen.blit(text, textRect)
+    pygame.display.flip()
+
+# ------------------- #
+# -- Tools methods -- #
+# ------------------- #
+
+def dist2City(city1, city2):
+    ''' Return the distance between 2 listCities ''' 
+    return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
+
+def standardDeviation(tab):
+    ''' Process and return the standard deviation ''' 
+    moyenne = float(sum(tab)) / len(tab)
+    et = sum([(t-moyenne)**2 for t in tab])
+    return math.sqrt(et)
+
+def notTooBadSorting(listCities):
+    ''' Just for begin with a first route "not too bad". Generate a route looking "each nearest" city WITHOUT complexe check ! ''' 
+    newCities = []
+    newCities.append(listCities[0])
+    [newCities.append(newCities[i-1].nearest(listCities,newCities)) for i in range(len(listCities)) if i <> 0]
+    return newCities
+
+# ------------------ #
+# ---- ga_solve ---- #
+# ------------------ #
+
+#@speedMeasure
+def ga_solve(file=None, gui=True, maxtime=None, listCities=None):
+    ''' Resolution of the city traveller problem ''' 
+
+    if file != None:
+        f = open(file,"r")
+        listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
+    
+    resolution = Resolution(listCities, gui)
+    resolution.start()
+    resolution.join(maxtime)
+        
+    # Retrieve the best route from the queue
+    bestRoute = result.get()
+    return (bestRoute.len(), [c.name for c in bestRoute.cityList[:]])
 
 #================================================
 #              Main
@@ -462,76 +539,6 @@ It is an optional argument.'''
         while True:
             event = pygame.event.wait()
             if event.type == KEYDOWN: break
-
-#================================================
-#              Methods
-#================================================
-def dist2City(city1, city2):
-    ''' Return the distance between 2 listCities ''' 
-    return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
-
-def standardDeviation(tab):
-    ''' Process and return the standard deviation ''' 
-    moyenne = float(sum(tab)) / len(tab)
-    et = sum([(t-moyenne)**2 for t in tab])
-    return math.sqrt(et)
-
-# ------------------ #
-# -- GUI methods -- #
-# ------------------ #
-
-def initPygame():
-    ''' Initialise Pygame '''
-    global screen
-    global font
-    pygame.init() 
-    window = pygame.display.set_mode((screen_x, screen_y)) 
-    pygame.display.set_caption('Exemple') 
-    screen = pygame.display.get_surface() 
-    font = pygame.font.Font(None,30)
-
-def drawCities(listCities):
-    ''' Draw all cities with a circle '''
-    screen.fill(0)
-    [pygame.draw.circle(screen,city_color,(c.x,c.y),city_radius) for c in listCities]
-    text = font.render("Nombre: %i" % len(listCities), True, font_color)
-    textRect = text.get_rect()
-    screen.blit(text, textRect)
-    pygame.display.flip()
-
-def drawRoute(route):
-    ''' Draw the route with lines and display its length '''
-    screen.fill(0)
-    pos = []
-    [pos.append((c.x,c.y)) for c in route.cityList]
-    [pygame.draw.lines(screen,city_color,True,pos) for c in pos]
-    text = font.render("Length = "+str(route.len()) , True, font_color)
-    textRect = text.get_rect()
-    screen.blit(text, textRect)
-    pygame.display.flip()
-
-def notTooBadSorting(listCities):
-    ''' Just for begin with a first route "not too bad". Generate a route looking "each nearest" city WITHOUT complexe check ! ''' 
-    newCities = []
-    newCities.append(listCities[0])
-    [newCities.append(newCities[i-1].nearest(listCities,newCities)) for i in range(len(listCities)) if i <> 0]
-    return newCities
-
-#@speedMeasure
-def ga_solve(file=None, gui=True, maxtime=None, listCities=None):
-    ''' Resolution of the city traveller problem ''' 
-
-    if file != None:
-        f = open(file,"r")
-        listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
-    
-    resolution = Resolution(listCities, gui)
-    resolution.start()
-    resolution.join(maxtime)
-        
-    # Retrieve the best route from the queue
-    bestRoute = result.get()
-    return (bestRoute.len(), [c.name for c in bestRoute.cityList[:]])
 
 if __name__ == '__main__':
     main()

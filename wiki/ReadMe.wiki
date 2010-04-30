@@ -4,8 +4,8 @@ Raphael Guye et Jonathan Neuhaus
 ===Sélection===
   * On choisit _pe1_% de la population à éliminer (= R individu)
   * On trie nos différents trajets.
-  * On élimine tout d'abord toutes les valeurs proches (dont la longueur < epsilonDistCities) tant que R > 0
-  * Si il reste des individus, on élimine les plus faibles.
+  * On élimine toutes les valeurs proches (dont la longueur entre 2 individue < epsilonDistCities), ceci tant que R > 0
+    * Si il reste encore des individus à éliminer, on élimine les plus faibles.
 
 ===Croisement===
   * On cherche à générer une population R (= la population éliminée par l'étape de sélection)

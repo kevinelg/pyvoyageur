@@ -55,6 +55,10 @@ ce qui correspond à :
   * pe2 = 30 pour 300 villes
   * On fixe pe2 minimal à *10*
 
+==Bogues connues==
+  * timeout lors de la génération du trajet initial possible
+   * Malgré que le timer démarre, la génération du trajet initial ne s'arrête pas comme elle devrait si maxtime est atteint.
+
 ==Listing de l'archive rendue==
 
 ===Arbre===

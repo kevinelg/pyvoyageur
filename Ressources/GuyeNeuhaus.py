@@ -362,19 +362,19 @@ class GeneticAlgorithm(object):
         
 class Resolution(threading.Thread):
     ''' Class called to solve the problem in a thread '''
-    def __init__(self, listCities, gui):
+    def __init__(self, listCities, gui, timeout):
         threading.Thread.__init__(self)
         self._stopevent = threading.Event()
         self.listCities = listCities
         self.gui = gui
         self.stopRunning = False
+        if timeout>0:
+            threading.Timer(timeout, self.join, [timeout]).start()
+        self.start()
     
     def join(self, timeout = None):
         ''' Redefinition of the join method '''
-        if timeout > 0:
-            time.sleep(timeout)
-            self._stopevent.set()
-            self.stopRunning = True
+        self.stopRunning = True
         
     def run(self):
         ''' The main loop to solve the problem '''
@@ -386,7 +386,7 @@ class Resolution(threading.Thread):
         
         if self.gui:
             drawRoute(bestRoute, False)
-        while(sd > 1 and not self._stopevent.isSet() and not self.stopRunning):
+        while(sd > 1 and not self.stopRunning):#not self._stopevent.isSet() and
             genAlgo.selection()
             genAlgo.crossover()
             genAlgo.mutation(self.stopRunning)
@@ -404,8 +404,8 @@ class Resolution(threading.Thread):
 
             if self.gui:
                 drawRoute(bestRoute, False)
-                
-        drawRoute(bestRoute, True)
+        if self.gui:
+            drawRoute(bestRoute, True)
         result.put(bestRoute)
 
 #================================================
@@ -482,9 +482,7 @@ def ga_solve(file=None, gui=True, maxtime=None, listCities=None):
         f = open(file,"r")
         listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
     
-    resolution = Resolution(listCities, gui)
-    resolution.start()
-    resolution.join(maxtime)
+    resolution = Resolution(listCities, gui, maxtime)
         
     # Retrieve the best route from the queue
     bestRoute = result.get()

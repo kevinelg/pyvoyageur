@@ -23,8 +23,7 @@ Pour chaque paire de trajet:
   * On ajoute aléatoirement des trajets dans la liste des trajets à muter.
 
   * Pour toute paire de ville i,j :
-   * On vérifie si le fait d'inverser le trajet entre ces 2 villes apporte un gain.
-=> Si c'est le cas, on inverse le trajet et on continue.
+   * On vérifie si le fait d'inverser le trajet entre ces 2 villes apporte un gain. Si c'est le cas, on inverse le trajet et on continue.
    * Lorsque toutes les combinaisons ont étées passées en revue => On s'arrête.
 
 Nous avions également implémenté un algorithme d'échange de villes ainsi que sa fonction de mesure du gain. Mais les résultats n'étaient pas concluants (temps plus long et résultats de mauvaises qualités ou en tout cas pas meilleurs)

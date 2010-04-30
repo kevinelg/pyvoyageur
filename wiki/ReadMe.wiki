@@ -8,12 +8,13 @@ Raphael Guye et Jonathan Neuhaus
    * Si il reste encore des individus à éliminer, on élimine les plus faibles.
 
 ===Croisement===
-  * On cherche à générer une population R (= la population éliminée par l'étape de sélection)
-  * On va choisir aléatoirement 2 trajets tant que R > 0
-Pour chaque paire de trajet, on:
-  * choisit une ville aléatoirement
-  * À  partir du trajet 1, on ajoute les villes à gauche de la ville déjà  choisie tant que la ville ne se situe pas déjà  dans le trajet en cours de génération
-  * À partir du trajet 2, on ajoute les villes à droite de la ville déjà choisie tant que la ville ne se situe pas déjà  dans le trajet en cours de génération
+  * On cherche à générer une population R éliminée lors de l'étape de sélection
+  * Tant que R > 0 : On va choisir aléatoirement une paire de trajets 
+Pour chaque paire de trajet:
+  * On choisit une ville aléatoirement
+  * On va créer un nouveau trajet de la manière suivante :
+   * À partir du trajet 1, on ajoute les villes *à gauche* de la ville déjà choisie tant que la ville ne se situe pas déjà  dans le nouveau trajet, en cours de génération
+   * À partir du trajet 2, on ajoute les villes *à droite* de la ville déjà choisie tant que la ville ne se situe pas déjà dans le nouveau trajet, en cours de génération
   * Une fois que l'on ne peut plus ajouter de villes ni à droite ni à gauche, on ajoute le reste des villes présentes dans le trajet 1 aléatoirement
 
 ===Mutation===

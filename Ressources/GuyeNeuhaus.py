@@ -304,7 +304,7 @@ class GeneticAlgorithm(object):
 class Resolution(threading.Thread):
     ''' Class called to solve the problem in a thread '''
     def __init__(self, listRoutes, gui):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self)         # not necessary if mac os, but needed it for a linux os !
         self._stopevent = threading.Event( )
         self.listRoutes = listRoutes
         self.gui = gui
@@ -317,8 +317,10 @@ class Resolution(threading.Thread):
     
     def join(self, timeout = None):
         ''' Redefinition of the join method '''
-        self._stopevent.set()
-        self.stopRunning = True
+        if timeout > 0:
+            time.sleep(timeout)
+            self._stopevent.set()
+            self.stopRunning = True
         
     def run(self):
         ''' The main loop to solve the problem '''
@@ -326,18 +328,13 @@ class Resolution(threading.Thread):
         sd = sys.maxint
         bestRoute= self.listRoutes[0]
         genAlgo = GeneticAlgorithm(self.listRoutes,pe1,pe2, initialRoutesNumber)
-        print ">Run"
         while(sd > 1 and not self._stopevent.isSet() and not self.stopRunning):
-            print ">IN"
             genAlgo.selection()
             genAlgo.crossover()
             genAlgo.mutation(self.stopRunning)
             
             genAlgo.sortListRoutesByLength()
             
-            # Process the standard deviation
-            # TODO: Fix the bug when using the PVC tester (crash because listRoutes is empty)
-            # IDEA: Use a timer that set a flag and run the program in the main loop (stop when there is the flag) > http://python.developpez.com/faq/?page=Thread
             if not self.stopRunning:
                 bestRoute = genAlgo.listRoutes[0]
                 lastResults.pop()
@@ -541,6 +538,7 @@ def ga_solve(file=None, gui=True, maxtime=None):
     initialRoutesNumber = generateRoutes(listRoutes, baseRoute)
     resolution = Resolution(listRoutes, gui)
     resolution.start()
+    
     resolution.join(maxtime)
         
     # Retrieve the best route from the queue

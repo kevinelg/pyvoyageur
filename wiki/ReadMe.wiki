@@ -55,23 +55,28 @@ ce qui correspond à :
   * pe2 =30 pour 300 villes
   * On fixe pe2 minimal à *10*
 
-==Listing==
+==Listing de l'archive rendue==
 
-|| Donnee.pdf || Consignes du problème
+===Arbre===
+
+/
+|--Donnee.pdf
+|--Documents
+  |-- # Documents utilisé pour le projet. Voir le listing détaillé plus bas
+|--Ressources
+  |-- # Toutes les ressources utilisées durant le projet, avec notre module final du voyageur de commerce (*GuyeNeuhaus.py*)
 
 ===Documents===
 || arob98.pdf || Explications sur l'implémentation d'un algorithme génétique pour résoudre le PVC ||
 || Explication TSP.pdf || Explications + exemple sur l'implémentation d'un algorithme génétique pour résoudre le PVC ||
-
-
-		lec26.pdf							Explications et tests de diffÃ©rents algorithmes
-		LKH_REPORT.pdf				Explications sur l'algorithme de Lin-Kernighan (trÃšs efficace)
-		TSPchapter.pdf				Explications et tests de diffÃ©rents algorithmes (plus dÃ©taillÃ©)
-		testPerformance.xls		Tests de performance et des optimisations rÃ©alisÃ©es avec notre implÃ©mentation
+|| lec26.pdf || Explications et tests de différents algorithmes ||
+|| LKH_REPORT.pdf || Explications sur l'algorithme de Lin-Kernighan (très efficace) ||
+|| TSPchapter.pdf || Explications et tests de différents algorithmes (plus détaillés) ||
+|| testPerformance.xls || Tests de performance et des optimisations réalisées avec notre implémentation ||
 		
-> Ressources
-		> data: contient les villes d'exemples
-		GUI_example.py	mode d'emploi du GUI
-		GuyeNeuhaus.py	notre implÃ©mentation du solveur du voyageur de commerce
-		MyUtils.py	 		dÃ©corateur permettant de mesurer le temps d'une fonction
-		PVC-test.py	 		Logiciel de test
+===Ressources===
+|| Dossier "data" || contient les villes d'exemples ||
+|| GUI_example.py || mode d'emploi du GUI ||
+||GuyeNeuhaus.py || notre implémentation de la résolution du voyageur de commerce ||
+|| MyUtils.py || Décorateur permettant de mesurer le temps d'une fonction ||
+|| PVC-test.py || Logiciel de test d'implémentation du voyageur de commerce ||

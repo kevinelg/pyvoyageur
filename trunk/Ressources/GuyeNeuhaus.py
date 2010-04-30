@@ -369,11 +369,12 @@ class Resolution(threading.Thread):
         self.gui = gui
         self.stopRunning = False
         if timeout>0:
-            threading.Timer(timeout, self.join, [timeout]).start()
+            # Launch a callback when the timeout is out
+            threading.Timer(timeout, self.stop, [timeout]).start()
         self.start()
     
-    def join(self, timeout = None):
-        ''' Redefinition of the join method '''
+    def stop(self, timeout = None):
+        ''' Method to force to stop the thread (ask to stop the search) '''
         self.stopRunning = True
         
     def run(self):
@@ -385,8 +386,8 @@ class Resolution(threading.Thread):
         genAlgo.generateRoutes()
         
         if self.gui:
-            drawRoute(bestRoute, False)
-        while(sd > 1 and not self.stopRunning):#not self._stopevent.isSet() and
+            drawRoute(bestRoute)
+        while(sd > 1 and not self.stopRunning):
             genAlgo.selection()
             genAlgo.crossover()
             genAlgo.mutation(self.stopRunning)
@@ -403,7 +404,7 @@ class Resolution(threading.Thread):
                 sd = standardDeviation(lastResults)
 
             if self.gui:
-                drawRoute(bestRoute, False)
+                drawRoute(bestRoute)
         if self.gui:
             drawRoute(bestRoute, True)
         result.put(bestRoute)
@@ -435,7 +436,7 @@ def drawCities(listCities):
     screen.blit(text, textRect)
     pygame.display.flip()
 
-def drawRoute(route, isTheEnd):
+def drawRoute(route, isTheEnd=False):
     ''' Draw the route with lines and display its length '''
     screen.fill(0)
     pos = []

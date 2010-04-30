@@ -1,6 +1,4 @@
-#summary Solution proposée par Raphael Guye et Jonathan Neuhaus
-
-_Par Raphael Guye et Jonathan Neuhaus, le 30 avril 2010_
+#summary Solution proposée par Raphael Guye et Jonathan Neuhaus, le 30 avril 2010
 
 == Description de notre implémentation ==
 ===Sélection===

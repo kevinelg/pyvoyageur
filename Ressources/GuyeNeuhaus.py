@@ -17,8 +17,8 @@ from MyUtils import speedMeasure
 import math
 from random import randint
 import time
-from threading import Thread
-from threading import Event
+import threading# import Thread
+#from threading import Event
 from Queue import *
 try:
 	import psyco
@@ -206,7 +206,7 @@ class GeneticAlgorithm(object):
                         genRoute.append(p[1].cityList[iRoute2])
                     else:
                         canMove2 = False
-    
+        
             # Add randomly the remaining listCities
             genRoute = genRandomCities(genRoute, lenRoute, listCities)
     
@@ -218,7 +218,7 @@ class GeneticAlgorithm(object):
             self.listRoutes.append(Route(genRoute))
     
     #@speedMeasure
-    def mutation(self):
+    def mutation(self, stopRunning):
         ''' Process a mutation based on the 2opt method '''
         # Retrieve pe% of individuals (- the elite individual)
         R = int(self.initialRoutesNumber * (self.pe2/100.0)) - 1
@@ -301,19 +301,19 @@ class GeneticAlgorithm(object):
         tmp2 = dist2City(route.cityList[(i-1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(i+1)%lenRoute], route.cityList[j]) + dist2City(route.cityList[(j+1)%lenRoute], route.cityList[i]) + dist2City(route.cityList[(j-1)%lenRoute], route.cityList[i])
         return tmp1 - tmp2
         
-class Resolution(Thread):
+class Resolution(threading.Thread):
     ''' Class called to solve the problem in a thread '''
     def __init__(self, listRoutes, gui):
-        Thread.__init__(self)
-        self._stopevent = Event( )
+        threading.Thread.__init__(self)
+        self._stopevent = threading.Event( )
         self.listRoutes = listRoutes
         self.gui = gui
+        self.stopRunning = False
         
     def stop(self):
         ''' Thread asked to stop '''
-        global stopRunning
         self._stopevent.set()
-        stopRunning = True
+        self.stopRunning = True
         
     def run(self):
         ''' The main loop to solve the problem '''
@@ -321,28 +321,26 @@ class Resolution(Thread):
         sd = sys.maxint
         bestRoute= self.listRoutes[0]
         genAlgo = GeneticAlgorithm(self.listRoutes,pe1,pe2, initialRoutesNumber)
-        while(sd > 1 and not self._stopevent.isSet() and not stopRunning):
-            print "Run"
+        while(sd > 1 and not self._stopevent.isSet() and not self.stopRunning):
             genAlgo.selection()
             genAlgo.crossover()
-            genAlgo.mutation()
-
+            genAlgo.mutation(self.stopRunning)
+            
             genAlgo.sortListRoutesByLength()
-
+            
             # Process the standard deviation
             # TODO: Fix the bug when using the PVC tester (crash because listRoutes is empty)
-            if not stopRunning:
+            # IDEA: Use a timer that set a flag and run the program in the main loop (stop when there is the flag) > http://python.developpez.com/faq/?page=Thread
+            if not self.stopRunning:
                 bestRoute = genAlgo.listRoutes[0]
                 lastResults.pop()
                 lastResults[1:] = lastResults[0:]
                 lastResults[0] = bestRoute.len()
             
                 sd = standardDeviation(lastResults)
-                print "T", lastResults[0]
 
             if self.gui:
                 drawRoute(bestRoute)
-        print "THREAD",bestRoute.len()
         result.put(bestRoute)
 
 #================================================
@@ -353,7 +351,7 @@ def main():
     global text
     usage =''' usage: %prog [options] [filename]
 This script is intend to solve the Travel Salesman problem (TSP) problem.
-
+        
 [filename] is a file that contains the coordinates of the cities.
 The format of this file is: NAME1 XPos1 YPos1
 It is an optional argument.''' 
@@ -500,25 +498,30 @@ def notTooBadSorting(listCities):
     [newCities.append(newCities[i-1].nearest(listCities,newCities)) for i in range(len(listCities)) if i <> 0]
     return newCities
 
+test = False
+def MyTimer(tempo = 1.0):
+    global test
+    test = True
+
 #@speedMeasure
 def ga_solve(file=None, gui=True, maxtime=0):
     ''' Resolution of the city traveller problem ''' 
-    global listCities, pe2, initialRoutesNumber 
+    global listCities, pe2, initialRoutesNumber, test
         
     if file != None:
         f = open(file,"r")
         listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
-    
+        
     # First base route (random => so very bad route...)
     badRoute = Route(listCities)
-
+        
     # Optimize the base route
     listCities = notTooBadSorting(listCities)
     baseRoute = Route(listCities)
     print baseRoute.len()
     if gui:
         drawRoute(baseRoute)        
-    
+        
     # Dynamic adaptation of the factors
     if len(baseRoute.cityList)<50:
         pe2 = 100
@@ -530,22 +533,24 @@ def ga_solve(file=None, gui=True, maxtime=0):
         initialRoutesNumber = 67 + 2.0/3*len(baseRoute.cityList)
     if pe2<10:
         pe2 = 10
-
+        
     listRoutes=[]
     # TODO: Insert this function in the Resolution class
     initialRoutesNumber = generateRoutes(listRoutes, baseRoute)
-
+    test = False
     resolution = Resolution(listRoutes, gui)
     # TODO: Resolve problem with PVCtester: if used, it allways returns 
     resolution.start()
     # Stop the thread when reaching the maxtime allowed
     if (maxtime > 0):
-        time.sleep(maxtime)
-        print "Timer",maxtime
+        # Try with timer: it works
+        threading.Timer(maxtime, MyTimer, [maxtime]).start()
+        while test<>False: pass
         resolution.stop()
+        #print "Timer",maxtime
+        
     # Retrieve the best route from the queue
     bestRoute = result.get()
-    print bestRoute.len()
     return (bestRoute.len(), [c.name for c in bestRoute.cityList[:]])
 
 if __name__ == '__main__':

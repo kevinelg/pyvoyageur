@@ -49,10 +49,10 @@ Nous avons remarqué que nous obtenions les meilleurs résultats lorsque la sél
 ===Choix du % de mutation à faire (pe2)===
 Nous faisons l'approximation linéaire suivante:
   * si le nombre de ville < 50 alors pe2 = 100
-  * sinon, pe2 = 114 -7/25 `*` nbVille
+  * sinon, pe2 = 114 - 7/25 `*` nbVille
 ce qui correspond à :
   * pe2 = 100 pour 50 villes
-  * pe2 =30 pour 300 villes
+  * pe2 = 30 pour 300 villes
   * On fixe pe2 minimal à *10*
 
 ==Listing de l'archive rendue==

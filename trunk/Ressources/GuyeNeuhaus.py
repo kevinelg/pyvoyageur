@@ -123,11 +123,9 @@ class Route(object):
         
 class GeneticAlgorithm(object):
     ''' Contains all the genetics methodes to solve the problem '''
-    def __init__(self,listCities,pe1):
+    def __init__(self,listCities):
         self.listRoutes = []
-        self.pe1 = pe1
         self.initialRoutesNumber = 0
-        print listCities
         # First base route (random => so very bad route...)
         self.badRoute = Route(listCities)
 
@@ -135,16 +133,18 @@ class GeneticAlgorithm(object):
         self.listCities = notTooBadSorting(listCities)
         self.baseRoute = Route(self.listCities)
         
-        if len(baseRoute.cityList)<50:
-            pe2 = 100
-            initialRoutesNumber = 100
+        self.pe1 = 0
+        # Dynamic adaptation of the factors
+        if len(self.baseRoute.cityList)<50:
+            self.pe2 = 100
+            self.initialRoutesNumber = 100
         else:
             # Linear scaling to have: 50 cities > pe2=100 / 300 cities > pe2=30
-            pe2 = 114 - 7.0/25*len(baseRoute.cityList)
+            self.pe2 = 114 - 7.0/25*len(baseRoute.cityList)
             # Linear scaling to have: 50 cities > pop=100 / 200 cities > pop=200
-            initialRoutesNumber = 67 + 2.0/3*len(baseRoute.cityList)
+            self.initialRoutesNumber = 67 + 2.0/3*len(baseRoute.cityList)
         if pe2<10:
-            pe2 = 10
+            self.pe2 = 10
         
     # -------------------------------- #
     # -- Central algorithm methods -- #
@@ -167,7 +167,7 @@ class GeneticAlgorithm(object):
         # Generate the baseRoute list with the generated indexList
         for j in indexList:
             cityList = []
-            [cityList.append(baseRoute.cityList[i]) for i in j]
+            [cityList.append(self.baseRoute.cityList[i]) for i in j]
             self.listRoutes.append(Route(cityList))
 
         self.initialRoutesNumber = len(self.listRoutes)
@@ -306,8 +306,6 @@ class GeneticAlgorithm(object):
             p*=i
         return p
 
-
-
     def shake(self, initialList):
         ''' Return a list of index shaken ''' 
         indexList = []
@@ -324,7 +322,7 @@ class GeneticAlgorithm(object):
     def maxPossibilities(self, lenCityList):
         ''' return the maximum number of different listRoutes '''
         #return math.factorial(lenCityList-1) # Works only with Python 2.6
-        return fac(lenCityList-1)
+        return self.fac(lenCityList-1)
 
     
     def sortListRoutesByLength(self):
@@ -468,7 +466,7 @@ It is an optional argument.'''
 #================================================
 #              Methods
 #================================================
-def dist2City(self, city1, city2):
+def dist2City(city1, city2):
     ''' Return the distance between 2 listCities ''' 
     return math.sqrt((city1.x-city2.x)**2 + (city1.y-city2.y)**2)
 
@@ -527,12 +525,7 @@ def ga_solve(file=None, gui=True, maxtime=None, listCities=None):
         f = open(file,"r")
         listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
     
-    # if gui:
-    #     drawRoute(baseRoute)        
-        
-    # Dynamic adaptation of the factors
-    
-    resolution = Resolution(gui, listCities)
+    resolution = Resolution(listCities, gui)
     resolution.start()
     resolution.join(maxtime)
         

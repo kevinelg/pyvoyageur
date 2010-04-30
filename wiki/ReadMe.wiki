@@ -60,8 +60,8 @@ ce qui correspond à :
 || Donnee.pdf || Consignes du problème
 
 ===Documents===
-|| arob98.pdf || Explications sur l'implémentation d'un algorithme génétique pour résoudre le PVC
-|| Explication TSP.pdf || Explications + exemple sur l'implémentation d'un algorithme génétique pour résoudre le PVC
+|| arob98.pdf || Explications sur l'implémentation d'un algorithme génétique pour résoudre le PVC ||
+|| Explication TSP.pdf || Explications + exemple sur l'implémentation d'un algorithme génétique pour résoudre le PVC ||
 
 
 		lec26.pdf							Explications et tests de diffÃ©rents algorithmes

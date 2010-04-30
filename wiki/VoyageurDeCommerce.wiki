@@ -38,7 +38,7 @@ Nous avions également implémenté un algorithme d'échange de villes ainsi que
 
 La population de base varie en fonction du nombre de villes:
   * si le nombre de ville < 50 alors population = 100
-  * sinon population = 67 + 2/3 x nbVille
+  * sinon population = 67 + 2/3 `*` nbVille
 ce qui correspond à : 
   * population = 100 pour 50 villes
   * population = 200 pour 200 villes
@@ -49,7 +49,7 @@ Nous avons remarqué que nous obtenions les meilleurs résultats lorsque la sél
 ===Choix du % de mutation à faire (pe2)===
 Nous faisons l'approximation linéaire suivante:
   * si le nombre de ville < 50 alors pe2 = 100
-  * sinon, pe2 = 114 -7/25* nbVille
+  * sinon, pe2 = 114 -7/25 `*` nbVille
 ce qui correspond à :
   * pe2 = 100 pour 50 villes
   * pe2 =30 pour 300 villes

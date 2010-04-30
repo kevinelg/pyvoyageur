@@ -38,7 +38,7 @@ Nous avions également implémenté un algorithme d'échange de villes ainsi que
 
 La population de base varie en fonction du nombre de villes:
   * si le nombre de ville < 50 alors population = 100
-  * sinon population = 67 + 2/3 ** nbVille
+  * sinon population = 67 + 2/3 x nbVille
 ce qui correspond à : 
   * population = 100 pour 50 villes
   * population = 200 pour 200 villes
@@ -50,17 +50,20 @@ Nous avons remarqué que nous obtenions les meilleurs résultats lorsque la sél
 Nous faisons l'approximation linéaire suivante:
   * si le nombre de ville < 50 alors pe2 = 100
   * sinon, pe2 = 114 -7/25* nbVille
-ce qui correspond Ã  pe2 = 100 pour 50 villes / pe2 =30 pour 300 villes
-Si on remarque que pe2 < 10, on fixe pe2 = 10
+ce qui correspond à :
+  * pe2 = 100 pour 50 villes
+  * pe2 =30 pour 300 villes
+  * On fixe pe2 minimal à *10*
 
- ===========
- = Listing =
- ===========
-Donnee.pdf						Consignes du problÃšme
+==Listing==
 
-> Documents
-		arob98.pdf						Explications sur l'implÃ©mentation d'un algorithme gÃ©nÃ©tique pour rÃ©soudre le PVC
-		Explication TSP.pdf		Explications + exemple sur l'implÃ©mentation d'un algorithme gÃ©nÃ©tique pour rÃ©soudre le PVC
+|| Donnee.pdf || Consignes du problème
+
+===Documents===
+|| arob98.pdf || Explications sur l'implémentation d'un algorithme génétique pour résoudre le PVC
+|| Explication TSP.pdf || Explications + exemple sur l'implémentation d'un algorithme génétique pour résoudre le PVC
+
+
 		lec26.pdf							Explications et tests de diffÃ©rents algorithmes
 		LKH_REPORT.pdf				Explications sur l'algorithme de Lin-Kernighan (trÃšs efficace)
 		TSPchapter.pdf				Explications et tests de diffÃ©rents algorithmes (plus dÃ©taillÃ©)

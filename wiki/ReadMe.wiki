@@ -1,4 +1,3 @@
-==Auteurs==
 Raphael Guye et Jonathan Neuhaus
 
 == Description de notre implémentation ==

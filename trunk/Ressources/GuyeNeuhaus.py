@@ -314,6 +314,11 @@ class Resolution(threading.Thread):
         ''' Thread asked to stop '''
         self._stopevent.set()
         self.stopRunning = True
+    
+    def join(self, timeout = None):
+        ''' Redefinition of the join method '''
+        self._stopevent.set()
+        self.stopRunning = True
         
     def run(self):
         ''' The main loop to solve the problem '''
@@ -321,7 +326,9 @@ class Resolution(threading.Thread):
         sd = sys.maxint
         bestRoute= self.listRoutes[0]
         genAlgo = GeneticAlgorithm(self.listRoutes,pe1,pe2, initialRoutesNumber)
+        print ">Run"
         while(sd > 1 and not self._stopevent.isSet() and not self.stopRunning):
+            print ">IN"
             genAlgo.selection()
             genAlgo.crossover()
             genAlgo.mutation(self.stopRunning)
@@ -498,13 +505,8 @@ def notTooBadSorting(listCities):
     [newCities.append(newCities[i-1].nearest(listCities,newCities)) for i in range(len(listCities)) if i <> 0]
     return newCities
 
-test = False
-def MyTimer(tempo = 1.0):
-    global test
-    test = True
-
 #@speedMeasure
-def ga_solve(file=None, gui=True, maxtime=0):
+def ga_solve(file=None, gui=True, maxtime=None):
     ''' Resolution of the city traveller problem ''' 
     global listCities, pe2, initialRoutesNumber, test
         
@@ -537,17 +539,9 @@ def ga_solve(file=None, gui=True, maxtime=0):
     listRoutes=[]
     # TODO: Insert this function in the Resolution class
     initialRoutesNumber = generateRoutes(listRoutes, baseRoute)
-    test = False
     resolution = Resolution(listRoutes, gui)
-    # TODO: Resolve problem with PVCtester: if used, it allways returns 
     resolution.start()
-    # Stop the thread when reaching the maxtime allowed
-    if (maxtime > 0):
-        # Try with timer: it works
-        threading.Timer(maxtime, MyTimer, [maxtime]).start()
-        while test<>False: pass
-        resolution.stop()
-        #print "Timer",maxtime
+    resolution.join(maxtime)
         
     # Retrieve the best route from the queue
     bestRoute = result.get()

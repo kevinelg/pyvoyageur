@@ -1,0 +1,70 @@
+= STRUCTURE DU DEPOT =
+Auteurs: Raphael Guye et Jonathan Neuhaus
+
+== Description de notre implémentation ==
+===Sélection===
+  * On choisit _pe1_% de la population à éliminer (= R individu)
+  * On trie nos différents trajets.
+  * On élimine tout d'abord toutes les valeurs proches (dont la longueur < epsilonDistCities) tant que R > 0
+  * Si il reste des individus, on élimine les plus faibles.
+
+===Croisement===
+  * On cherche à générer une population R (= la population éliminée par l'étape de sélection)
+  * On va choisir aléatoirement 2 trajets tant que R > 0
+Pour chaque paire de trajet, on:
+  * choisit une ville aléatoirement
+  * À  partir du trajet 1, on ajoute les villes à gauche de la ville déjà  choisie tant que la ville ne se situe pas déjà  dans le trajet en cours de génération
+  * À partir du trajet 2, on ajoute les villes à droite de la ville déjà choisie tant que la ville ne se situe pas déjà  dans le trajet en cours de génération
+  * Une fois que l'on ne peut plus ajouter de villes ni à droite ni à gauche, on ajoute le reste des villes présentes dans le trajet 1 aléatoirement
+
+===Mutation===
+  * On va chercher à faire muter pe2% de la population (= R individu)
+  * On sélectionne dans tous les cas la meilleure solution.
+  * On ajoute aléatoirement des trajets dans la liste des trajets à muter.
+
+Pour toute paire de ville i,j on vérifie si le fait d'inverser le trajet entre ces 2 villes apporte un gain. Si c'est le cas, on inverse le trajet et on continue.
+On s'arrète lorsque toutes les combinaisons ont étées passées en revue.
+
+Nous avons également implémenté un algorithme d'échange de villes ainsi que sa fonction de mesure du gain, mais les résultats ne sont pas concluants (temps plus long et résultats de mauvaises qualités)
+
+===Choix de la population===
+Dans un premier temps, nous nous contentons de prendre le trajet de base tel que décrit dans le fichier ou dans l'ordre entré à la main.
+Nous appliquons ensuite un algorithme permettant de réorganiser ce trajet en partant d'une ville et en ajoutant chaque fois la ville la plus proche non déjà  contenue dans le trajet.
+Cette étape nous permet d'avoir une solution pas trop mauvaise dans un premier temps.
+
+Nous effectuons ensuite une génération aléatoire d'indice qui représentent des trajets aléatoires.
+
+La population de base varie en fonction du nombre de villes:
+  * si le nombre de ville < 50 alors population = 100
+  * sinon population = 67 + 2/3 * nbVille
+ce qui correspond Ã  population = 100 pour 50 villes / population = 200 pour 200 villes
+
+===Choix du % de sélection et croisement à faire (pe1)===
+Nous avons remarqué que nous obtenions les meilleurs résultats lorsque la sélection et le croisement n'était pas effectué (pe1=0%)
+
+===Choix du % de mutation à faire (pe2)===
+Nous faisons l'approximation linéaire suivante:
+  * si le nombre de ville < 50 alors pe2 = 100
+  * sinon, pe2 = 114 -7/25* nbVille
+ce qui correspond Ã  pe2 = 100 pour 50 villes / pe2 =30 pour 300 villes
+Si on remarque que pe2 < 10, on fixe pe2 = 10
+
+ ===========
+ = Listing =
+ ===========
+Donnee.pdf						Consignes du problÃšme
+
+> Documents
+		arob98.pdf						Explications sur l'implÃ©mentation d'un algorithme gÃ©nÃ©tique pour rÃ©soudre le PVC
+		Explication TSP.pdf		Explications + exemple sur l'implÃ©mentation d'un algorithme gÃ©nÃ©tique pour rÃ©soudre le PVC
+		lec26.pdf							Explications et tests de diffÃ©rents algorithmes
+		LKH_REPORT.pdf				Explications sur l'algorithme de Lin-Kernighan (trÃšs efficace)
+		TSPchapter.pdf				Explications et tests de diffÃ©rents algorithmes (plus dÃ©taillÃ©)
+		testPerformance.xls		Tests de performance et des optimisations rÃ©alisÃ©es avec notre implÃ©mentation
+		
+> Ressources
+		> data: contient les villes d'exemples
+		GUI_example.py	mode d'emploi du GUI
+		GuyeNeuhaus.py	notre implÃ©mentation du solveur du voyageur de commerce
+		MyUtils.py	 		dÃ©corateur permettant de mesurer le temps d'une fonction
+		PVC-test.py	 		Logiciel de test

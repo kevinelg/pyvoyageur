@@ -1,5 +1,4 @@
-_Par Raphael Guye et Jonathan Neuhaus_
-_30 avril 2010_
+_Par Raphael Guye et Jonathan Neuhaus, le 30 avril 2010_
 
 == Description de notre implémentation ==
 ===Sélection===

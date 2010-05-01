@@ -29,9 +29,9 @@ tests = (
     ('data/pb005.txt',1),
     ('data/pb010.txt',1),
     ('data/pb010.txt',3),
-    ('data/pb050.txt',3),
+    ('data/pb050.txt',4),
     ('data/pb050.txt',5),
-#    ('data/pb100.txt',20),
+    ('data/pb100.txt',15),
 #    ('data/pb100.txt',90),
 )
 

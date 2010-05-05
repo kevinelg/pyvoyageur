@@ -13,12 +13,11 @@ import sys
 import os
 from string import strip
 from optparse import OptionParser
-from MyUtils import speedMeasure
 import math
+#from MyUtils import speedMeasure
 from random import randint
-import time
 import threading
-from Queue import *
+from Queue import Queue
 try:
 	import psyco
 	psyco.full()
@@ -94,7 +93,7 @@ class Route(object):
     	length += dist2City(self.cityList[0], self.cityList[-1])
         return length
         
-    def isEgal(self, route):
+    def isEqual(self, route):
         ''' Check if the 2 listRoutes are equal''' 
         if (len(self.cityList) <> route.len()):
             return False
@@ -107,7 +106,7 @@ class Route(object):
     def isContained(self, listRoutes):
         ''' Check if the self route is contained in the listRoutes ''' 
         for r in listRoutes:
-            if r.isEgal(self):
+            if r.isEqual(self):
                 return True
         return False
         
@@ -127,9 +126,11 @@ class GeneticAlgorithm(object):
         self.listCities = notTooBadSorting(listCities)
         self.baseRoute = Route(self.listCities)
         
+        # % of population to select and cross
         self.pe1 = 0
         # Dynamic adaptation of the factors
         if len(self.baseRoute.cityList)<50:
+            # % of population to mutate
             self.pe2 = 100
             self.initialRoutesNumber = 100
         else:
@@ -161,7 +162,8 @@ class GeneticAlgorithm(object):
         # Generate the baseRoute list with the generated indexList
         for j in indexList:
             cityList = []
-            [cityList.append(self.baseRoute.cityList[i]) for i in j]
+            for i in j:
+                cityList.append(self.baseRoute.cityList[i])
             self.listRoutes.append(Route(cityList))
 
         self.initialRoutesNumber = len(self.listRoutes)
@@ -240,7 +242,7 @@ class GeneticAlgorithm(object):
                         canMove2 = False
         
             # Add randomly the remaining listCities
-            genRoute = genRandomCities(genRoute, lenRoute, listCities)
+            genRoute = self.genRandomCities(genRoute, lenRoute, listCities)
     
             # if the genRoute already exist, we generate a random route. So: no redundancy (no improvement)
             # while (genRoute in self.listRoutes):
@@ -289,15 +291,6 @@ class GeneticAlgorithm(object):
     # -- Tools algorithm methods -- #
     # ------------------------------ #
     
-    def fac(self, n):
-        ''' Return the factorial of a number 
-        This functions is only needed if python version <= 2.5
-        There is math.factorial available then ''' 
-        p=1
-        for i in range(1,n+1):
-            p*=i
-        return p
-
     def shake(self, initialList):
         ''' Return a list of index shaken ''' 
         indexList = []
@@ -314,8 +307,19 @@ class GeneticAlgorithm(object):
     def maxPossibilities(self, lenCityList):
         ''' return the maximum number of different listRoutes '''
         #return math.factorial(lenCityList-1) # Works only with Python 2.6
-        return self.fac(lenCityList-1)
-
+        try:
+            fac = math.factorial(lenCityList-1)
+        except:
+            def fac(n):
+                ''' Return the factorial of a number 
+                This functions is only needed if python version <= 2.5
+                There is math.factorial available then ''' 
+                p=1
+                for i in range(1,n+1):
+                    p*=i
+                return p
+            fac = fac(lenCityList-1)
+        return fac
     
     def sortListRoutesByLength(self):
         ''' Sort the routes by length '''
@@ -373,7 +377,7 @@ class Resolution(threading.Thread):
             threading.Timer(timeout, self.stop, [timeout]).start()
         self.start()
     
-    def stop(self, timeout = None):
+    def stop(self):
         ''' Method to force to stop the thread (ask to stop the search) '''
         self.stopRunning = True
         
@@ -422,7 +426,7 @@ def initPygame():
     global screen
     global font
     pygame.init() 
-    window = pygame.display.set_mode((screen_x, screen_y)) 
+    pygame.display.set_mode((screen_x, screen_y)) 
     pygame.display.set_caption('Exemple') 
     screen = pygame.display.get_surface() 
     font = pygame.font.Font(None,30)
@@ -483,7 +487,7 @@ def ga_solve(file=None, gui=True, maxtime=None, listCities=None):
         f = open(file,"r")
         listCities = [City(int(l.split(" ")[1]),int(strip(l.split(" ")[2])),l.split(" ")[0]) for l in f]
     
-    resolution = Resolution(listCities, gui, maxtime)
+    Resolution(listCities, gui, maxtime)
         
     # Retrieve the best route from the queue
     bestRoute = result.get()
@@ -494,7 +498,6 @@ def ga_solve(file=None, gui=True, maxtime=None, listCities=None):
 #================================================
 
 def main():
-    global text
     usage =''' usage: %prog [options] [filename]
 This script is intend to solve the Travel Salesman problem (TSP) problem.
         
